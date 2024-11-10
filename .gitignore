@@ -1,0 +1,7 @@
+/artifacts
+.DS_Store
+*.sw[pon]
+.idea/
+*.DotSettings.user
+.vs/
+appsettings.*.json

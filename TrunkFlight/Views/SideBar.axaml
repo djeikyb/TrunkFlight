@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:TrunkFlight.Vm"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:MainViewModel"
+             Background="#fffaafaf"
+             x:Class="TrunkFlight.Views.SideBar">
+  <StackPanel Orientation="Vertical">
+    <SelectableTextBlock Text="ahm" />
+    <SelectableTextBlock Text="in" />
+    <SelectableTextBlock Text="ur" />
+    <SelectableTextBlock Text="side bar" />
+
+    <NumericUpDown Increment="0.1"
+                   Minimum="0.0"
+                   Maximum="1.0"
+                   FormatString="0.00"
+                   ParsingNumberStyle="Currency"
+                   ClipValueToMinMax="True"
+                   Value="{Binding TintOpacity.Value}">
+      <NumericUpDown.Styles>
+        <Style
+          Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner:right /template/ RepeatButton#PART_IncreaseButton">
+          <Setter Property="Background" Value="GreenYellow" />
+          <Setter Property="MinWidth" Value="15" />
+        </Style>
+        <Style
+          Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner:right /template/ RepeatButton#PART_DecreaseButton">
+          <Setter Property="Background" Value="GreenYellow" />
+          <Setter Property="MinWidth" Value="15" />
+        </Style>
+      </NumericUpDown.Styles>
+    </NumericUpDown>
+
+    <StackPanel Orientation="Horizontal">
+      <SelectableTextBlock Text="Tint"
+                           Margin="36 0 -60 0"
+                           Padding="0"
+                           RenderTransform="rotate(-90deg)" />
+      <Slider
+        Height="100"
+        Orientation="Vertical"
+        TickPlacement="BottomRight"
+        TickFrequency=".1"
+        IsSnapToTickEnabled="True"
+        HorizontalAlignment="Stretch"
+        Minimum="0"
+        Maximum="1"
+        Margin="0"
+        Padding="0"
+        Value="{Binding TintOpacity.Value}" />
+
+      <Slider
+        Height="100"
+        Orientation="Vertical"
+        TickFrequency=".1"
+        IsSnapToTickEnabled="True"
+        HorizontalAlignment="Stretch"
+        Minimum="0"
+        Maximum="1"
+        Margin="-18"
+        Padding="0"
+        Value="{Binding MaterialOpacity.Value}" />
+
+      <SelectableTextBlock Text="Material"
+                           Margin="-54 0 36 0"
+                           Padding="0"
+                           RenderTransform="rotate(90deg)" />
+    </StackPanel>
+
+    <NumericUpDown Increment="0.1"
+                   Minimum="0.0"
+                   Maximum="1.0"
+                   FormatString="0.00"
+                   ParsingNumberStyle="Currency"
+                   ClipValueToMinMax="True"
+                   Value="{Binding MaterialOpacity.Value}">
+      <NumericUpDown.Styles>
+        <Style
+          Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner:right /template/ RepeatButton#PART_IncreaseButton">
+          <Setter Property="Background" Value="GreenYellow" />
+          <Setter Property="MinWidth" Value="15" />
+        </Style>
+        <Style
+          Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner:right /template/ RepeatButton#PART_DecreaseButton">
+          <Setter Property="Background" Value="GreenYellow" />
+          <Setter Property="MinWidth" Value="15" />
+        </Style>
+      </NumericUpDown.Styles>
+    </NumericUpDown>
+
+    <ToggleSwitch Name="SideBarBackgroundSwitch" IsChecked="True" />
+  </StackPanel>
+</UserControl>

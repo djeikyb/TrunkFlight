@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:TrunkFlight.Views">
+  <Design.PreviewWith>
+    <views:LabeledTextBox Label="some label"
+                          LabelWidth="100"
+                          Text="some text value" />
+  </Design.PreviewWith>
+
+  <Style Selector="views|LabeledTextBox">
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal"
+                    Margin="9 0">
+          <Label Target="{Binding #Foo}"
+                 HorizontalContentAlignment="Right"
+                 VerticalContentAlignment="Bottom"
+                 VerticalAlignment="Bottom"
+                 Grid.Column="0"
+                 Content="{TemplateBinding Label}">
+          </Label>
+          <TextBox Name="Foo"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   Grid.Column="1"
+                   Text="{TemplateBinding Text}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

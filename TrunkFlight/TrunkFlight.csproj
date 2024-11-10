@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishAot>true</PublishAot>
+    <TrimMode>full</TrimMode>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+  </PropertyGroup>
+
+  <ItemGroup Label="Avalonia">
+    <PackageReference Include="Avalonia" Version="11.2.1"/>
+    <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.10"/>
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.1"/>
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1"/>
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.1"/>
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.1"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0" />
+    <PackageReference Include="R3Extensions.Avalonia" Version="1.2.9" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);ENABLE_XAML_HOT_RELOAD</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Condition="$(DefineConstants.Contains(ENABLE_XAML_HOT_RELOAD))" Include="Avalonia.Markup.Xaml.Loader" Version="11.2.1"/>
+    <PackageReference Condition="$(DefineConstants.Contains(ENABLE_XAML_HOT_RELOAD))" Include="HotAvalonia" Version="1.1.1"/>
+    <PackageReference Include="HotAvalonia.Extensions" Version="1.1.1" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TrunkFlight.Core\TrunkFlight.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\ProjectView.axaml.cs">
+      <DependentUpon>ProjectView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

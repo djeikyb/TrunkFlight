@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:TrunkFlight.Views">
+  <Design.PreviewWith>
+    <views:LabeledText Label="some label"
+                       Text="some text value" />
+  </Design.PreviewWith>
+
+  <Style Selector="views|LabeledText">
+    <!-- Set Defaults -->
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal"
+                    Margin="6 0">
+          <Label Target="{Binding #Foo}"
+                 Width="{TemplateBinding LabelWidth}"
+                 HorizontalContentAlignment="Right"
+                 VerticalContentAlignment="Center">
+            <TextBlock Text="{TemplateBinding Label}" />
+          </Label>
+          <SelectableTextBlock Name="Foo"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Text="{TemplateBinding Text}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:TrunkFlight.Vm"
+             xmlns:v="clr-namespace:TrunkFlight.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:MainViewModel"
+             x:Class="TrunkFlight.Views.ProjectView">
+
+  <UserControl.Styles>
+    <Style Selector="Grid.row">
+      <Style Selector="^ Label">
+        <Setter Property="HorizontalContentAlignment"
+                Value="Right" />
+        <Setter Property="VerticalAlignment"
+                Value="Stretch" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Top" />
+        <!-- VerticalAlignment="Stretch" -->
+        <!-- VerticalContentAlignment="Top" -->
+      </Style>
+      <Style Selector="^ TextBlock">
+        <Setter Property="Padding"
+                Value="0 3" />
+      </Style>
+      <Style Selector="^ SelectableTextBlock">
+        <Setter Property="Padding"
+                Value="0 3" />
+      </Style>
+      <Setter Property="v:SetterBehavior.ColumnDefinitions">
+        <ColumnDefinitions>
+          <ColumnDefinition Width="100"
+                            SharedSizeGroup="label" />
+          <ColumnDefinition Width="*"
+                            SharedSizeGroup="value" />
+        </ColumnDefinitions>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+
+    <StackPanel HorizontalAlignment="Stretch" Margin="12" Spacing="3"
+                DockPanel.Dock="Top">
+      <TextBlock Text="Start here." />
+      <Button Content="Load project (cheat)"
+              HorizontalAlignment="Stretch"
+              Command="{Binding ProjectLoadCommand}" />
+      <Button Content="Fetch Updates"
+              HorizontalAlignment="Stretch"
+              Command="{Binding ProjectUpdateCommand}" />
+      <Button Content="Unload project"
+              HorizontalAlignment="Stretch"
+              Command="{Binding ProjectUnloadCommand}" />
+      <TextBlock Text="Sandbox actions are cheap and safe." />
+      <Button Content="Sandbox: Create"
+              HorizontalAlignment="Stretch"
+              Command="{Binding SandboxCreateCommand}" />
+      <Button Content="Sandbox: Run App"
+              HorizontalAlignment="Stretch"
+              Command="{Binding SandboxRunAppCommand}" />
+      <Button Content="Sandbox: Destroy"
+              HorizontalAlignment="Stretch"
+              Command="{Binding SandboxDestroyCommand}" />
+      <TextBlock Text="Use with caution." />
+      <Button Content="Init"
+              HorizontalAlignment="Stretch"
+              Command="{Binding InitRepo}" />
+      <Button Content="Clean"
+              HorizontalAlignment="Stretch"
+              Command="{Binding TearDownCommand}" />
+    </StackPanel>
+
+    <!-- <StackPanel DockPanel.Dock="Top" DataContext="{Binding Project.Value}"> -->
+    <!--   <Label Content="asdf" /> -->
+    <!--   <TextBlock Text="{Binding Name}" /> -->
+    <!-- </StackPanel> -->
+
+    <ListBox
+      ItemsSource="{Binding GitRefOptions}"
+      SelectedItem="{Binding GitRefSelected.Value}"
+      DockPanel.Dock="Top">
+    </ListBox>
+
+    <Grid Classes="row"
+          DockPanel.Dock="Top"
+          DataContext="{Binding Project.Value}">
+      <Label Target="ProjectName"
+             Content="Project:" />
+      <SelectableTextBlock Name="ProjectName"
+                           TextWrapping="Wrap"
+                           Grid.Column="1"
+                           Text="{Binding Name}" />
+    </Grid>
+
+    <Grid Classes="row"
+          DockPanel.Dock="Top"
+          DataContext="{Binding Project.Value}">
+      <Label Target="Command"
+             Content="Command:" />
+      <SelectableTextBlock Name="Command"
+                           TextWrapping="Wrap"
+                           Grid.Column="1"
+                           Text="{Binding Command}" />
+    </Grid>
+
+    <Grid Classes="row"
+          DockPanel.Dock="Top">
+      <Label Target="WorkingDir"
+             Content="Source Code:" />
+      <SelectableTextBlock Name="WorkingDir"
+                           TextWrapping="Wrap"
+                           Grid.Column="1"
+                           Text="{Binding SandboxPath.Value}" />
+    </Grid>
+
+
+    <TextBox Text="{Binding ProcessOutput.Value}" />
+
+  </DockPanel>
+
+</UserControl>

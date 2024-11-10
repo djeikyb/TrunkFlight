@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrunkFlight", "TrunkFlight\TrunkFlight.csproj", "{15919D27-6A1C-4985-A31E-04E98135B62B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{0398B607-387D-456B-9579-B6C9BC875BFE}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		readme.md = readme.md
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrunkFlight.Core", "TrunkFlight.Core\TrunkFlight.Core.csproj", "{7DE99732-787C-4895-B9D9-7576C687CDBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrunkFlight.Cli", "TrunkFlight.Cli\TrunkFlight.Cli.csproj", "{C9745986-C727-46BB-B462-25A1CF1589B4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15919D27-6A1C-4985-A31E-04E98135B62B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15919D27-6A1C-4985-A31E-04E98135B62B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15919D27-6A1C-4985-A31E-04E98135B62B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15919D27-6A1C-4985-A31E-04E98135B62B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DE99732-787C-4895-B9D9-7576C687CDBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DE99732-787C-4895-B9D9-7576C687CDBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DE99732-787C-4895-B9D9-7576C687CDBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DE99732-787C-4895-B9D9-7576C687CDBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9745986-C727-46BB-B462-25A1CF1589B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9745986-C727-46BB-B462-25A1CF1589B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9745986-C727-46BB-B462-25A1CF1589B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9745986-C727-46BB-B462-25A1CF1589B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

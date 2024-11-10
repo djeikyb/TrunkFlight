@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key='Default'>
+      <Color x:Key="AcrylicColor">#f1f4f4</Color>
+      <Color x:Key="TextControlBackgroundFocused">#e6e7e7</Color>
+      <Color x:Key="TextControlBorderBrush">#50000000</Color>
+
+      <!-- <Color x:Key="TitleBarSeparatorColorTop">rgb(210, 213, 213)</Color> -->
+      <!-- <Color x:Key="TitleBarSeparatorColorBottom">rgb(200, 202, 202)</Color> -->
+      <Color x:Key="TitleBarSeparatorColorTop">CornflowerBlue</Color>
+      <Color x:Key="TitleBarSeparatorColorBottom">Violet</Color>
+
+      <Color x:Key="TableRow_Foreground">rgb(40, 40, 40)</Color>
+      <Color x:Key="TableRow_Background-Primary">#ffffff</Color>
+      <Color x:Key="TableRow_Background-Secondary">#f4f5f5</Color>
+      <Color x:Key="StatusBar_Background">#f1f4f4</Color>
+      <Color x:Key="StatusBarSeparatorColorTop">#e4e6e6</Color>
+      <Color x:Key="StatusBarSeparatorColorBottom">#c6c8c8</Color>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key='Dark'>
+      <Color x:Key="AcrylicColor">rgba(53, 56, 56, 1.00)</Color>
+      <Color x:Key="SystemControlForegroundBaseHighBrush">rgba(236, 237, 237, 1.00)</Color>
+      <Color x:Key="TextControlBackground">rgba(53, 56, 56, 1.00)</Color>
+      <Color x:Key="TextControlBackgroundPointerOver">rgba(53, 56, 56, 1.00)</Color>
+      <Color x:Key="TextControlBackgroundFocused">rgba(65, 69, 69, 1.00)</Color>
+      <Color x:Key="TextControlBorderBrush">#FF788080</Color>
+      <Color x:Key="TitleBarSeparatorColorTop">#000</Color>
+      <Color x:Key="TitleBarSeparatorColorBottom">#171919</Color>
+      <Color x:Key="TableRow_Foreground">#dedfdf</Color>
+      <Color x:Key="TableRow_Background-Primary">#1e2323</Color>
+      <Color x:Key="TableRow_Background-Secondary">#292d2d</Color>
+      <Color x:Key="StatusBar_Background">#363a3a</Color>
+      <Color x:Key="StatusBarSeparatorColorTop">rgb(43, 45, 45)</Color>
+      <Color x:Key="StatusBarSeparatorColorBottom">#000</Color>
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>
