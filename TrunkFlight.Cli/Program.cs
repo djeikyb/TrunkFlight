@@ -1,12 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using TrunkFlight.Core;
 
 namespace TrunkFlight.Cli;
 
-class Program
+public class Program
 {
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
         var config = new ConfigurationBuilder()
@@ -14,34 +13,34 @@ class Program
             .AddEnvironmentVariables()
             .Build();
         Console.WriteLine(config.GetConnectionString("db"));
-        var db = new DataContext(config);
+        var db = new Db(config);
 
-        var result = db.Database.EnsureDeleted();
+        var result = db.EnsureDeleted();
         Console.WriteLine("deleted:\n" + result);
 
-        var created = db.Database.EnsureCreated();
+        var created = db.EnsureCreated();
         Console.WriteLine("created:\n" + created);
-        Console.WriteLine(db.Database.GetConnectionString());
+        Console.WriteLine(db.GetConnectionString());
 
 
-        var gr = db.GitRepos.Add(new GitRepo
+        var gr = new GitRepo
         {
             GitUrl = "changeme",
             Username = "changeme",
             Password = "changeme",
             RepoPath = AppData.Default.GenerateRepoPath("changeme"),
-        }).Entity;
-        db.SaveChanges();
+        };
+        db.Save(gr);
 
-        var proj = db.Projects.Add(new Project
+        var proj = new Project
         {
             Name = "changeme",
             GitRepoId = gr.GitRepoId,
             Command = "changeme",
-        }).Entity;
-        db.SaveChanges();
+        };
+        db.Save(proj);
 
-        var service = new Git(AppData.Default, gr);
-        service.Fetch();
+        var git = new Git(AppData.Default, gr);
+        git.Fetch();
     }
 }

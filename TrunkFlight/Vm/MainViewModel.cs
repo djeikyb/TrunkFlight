@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Input.Platform;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using ObservableCollections;
 using R3;
@@ -34,9 +35,13 @@ public class MainViewModel : IDisposable
     public MainViewModel(IClipboard clipboard)
     {
         var config = new ConfigurationBuilder().AddDefaultConfig().AddEnvironmentVariables().Build();
-        var db = new DataContext(config);
-        db.Database.EnsureCreated();
-        var projects = new ProjectService(AppData.Default, db);
+
+        var conn = new SqliteConnection(config.GetConnectionString("db"))
+            .AddTo(ref _disposable);
+        conn.Open();
+        var db = new Db(conn);
+        db.EnsureCreated();
+
         var logger = Log.ForContext<MainViewModel>();
 
         logger.Information(AppData.Default.UserAppDataDir.FullName);
@@ -75,10 +80,10 @@ public class MainViewModel : IDisposable
         });
 
         ProjectLoadCommand = new ReactiveCommand();
-        ProjectLoadCommand.SubscribeAwait((async (_, ct) =>
+        ProjectLoadCommand.Subscribe((_ =>
         {
             logger.Information("Command: " + nameof(ProjectLoadCommand));
-            var p = await projects.First(ct);
+            var p = db.LatestProject();
             Project.Value = p;
             if (p?.GitRepo is not null)
             {
@@ -252,7 +257,7 @@ public class MainViewModel : IDisposable
         }
     }
 
-    private static void UpsertGitRepoAndProject(string projectData, DataContext db)
+    private static void UpsertGitRepoAndProject(string projectData, Db db)
     {
         // SAMPLE
         // string projectData = """
@@ -292,45 +297,24 @@ public class MainViewModel : IDisposable
             return;
         }
 
-        var repo = db.GitRepos.FirstOrDefault(x => x.GitUrl.Equals(d["git.repo"]));
-        if (repo is null)
+        var gitRepo = new GitRepo
         {
-            var gitRepo = new GitRepo
-            {
-                RepoPath = AppData.Default.GenerateRepoPath(d["git.repo"]),
-                GitUrl = d["git.repo"]
-            };
-            if (d.TryGetValue("git.user", out var user))
-                gitRepo.Username = user;
-            if (d.TryGetValue("git.pass", out var pass))
-                gitRepo.Password = pass;
-            repo = db.GitRepos.Add(gitRepo).Entity;
-            db.SaveChanges();
-        }
-        else
-        {
-            if (d.TryGetValue("git.user", out var user))
-                repo.Username = user;
-            if (d.TryGetValue("git.pass", out var pass))
-                repo.Password = pass;
-        }
+            RepoPath = AppData.Default.GenerateRepoPath(d["git.repo"]),
+            GitUrl = d["git.repo"]
+        };
+        if (d.TryGetValue("git.user", out var user))
+            gitRepo.Username = user;
+        if (d.TryGetValue("git.pass", out var pass))
+            gitRepo.Password = pass;
+        db.Save(gitRepo);
 
-        var proj = db.Projects.FirstOrDefault(x => x.Name.Equals(d["project.name"]));
-        if (proj is null)
+        var proj = new Project
         {
-            proj = db.Projects.Add(new Project
-            {
-                GitRepoId = repo.GitRepoId,
-                Name = d["project.name"],
-                Command = d["project.command"],
-            }).Entity;
-            db.SaveChanges();
-        }
-        else
-        {
-            proj.Command = d["project.command"];
-            db.SaveChanges();
-        }
+            GitRepoId = gitRepo.GitRepoId,
+            Name = d["project.name"],
+            Command = d["project.command"],
+        };
+        db.Save(proj);
     }
 
     [Flags]
