@@ -41,7 +41,7 @@ class Program
         }).Entity;
         db.SaveChanges();
 
-        var service = new GitService(AppData.Default, db);
-        service.Fetch(gr);
+        var service = new Git(AppData.Default, gr);
+        service.Fetch();
     }
 }

@@ -135,7 +135,7 @@
     <Grid Classes="row"
           DockPanel.Dock="Top">
       <Label Target="WorkingDir"
-             Content="Source Code:" />
+             Content="Sandbox:" />
       <SelectableTextBlock Name="WorkingDir"
                            TextWrapping="Wrap"
                            Grid.Column="1"
