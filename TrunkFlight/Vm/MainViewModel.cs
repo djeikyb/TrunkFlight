@@ -49,13 +49,20 @@ public class MainViewModel : IDisposable
         ProjectLoadCommand.SubscribeAwait((async (_, ct) =>
         {
             logger.Information("Command: " + nameof(ProjectLoadCommand));
-            Project.Value = await projects.First(ct);
+            var p = await projects.First(ct);
+            Project.Value = p;
+            if (p?.GitRepo is not null)
+            {
+                var git = new Git(AppData.Default, p.GitRepo);
+                UpdateCommitOptions(commits, git);
+            }
         }));
 
         ProjectUnloadCommand = new ReactiveCommand(_ =>
         {
             logger.Information("Command: " + nameof(ProjectUnloadCommand));
             Project.Value = null;
+            commits.Clear();
         });
 
         ProjectUpdateCommand = new ReactiveCommand(_ =>
