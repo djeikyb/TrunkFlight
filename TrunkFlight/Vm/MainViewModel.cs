@@ -68,10 +68,7 @@ public class MainViewModel : IDisposable
 
             var git = new Git(AppData.Default, p.GitRepo);
             git.Fetch();
-            commits.Clear();
-            var latestCommits = git.LatestCommits()
-                .Select(x => x.ShaShort + " " + x.MessageShort);
-            commits.AddRange(latestCommits);
+            UpdateCommitOptions(commits, git);
         });
 
         SandboxCreateCommand = new ReactiveCommand(_ =>
@@ -158,6 +155,14 @@ public class MainViewModel : IDisposable
 
         TintOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
         MaterialOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
+    }
+
+    private static void UpdateCommitOptions(ObservableList<string> commits, Git git)
+    {
+        commits.Clear();
+        var latestCommits = git.LatestCommits()
+            .Select(x => x.ShaShort + " " + x.MessageShort);
+        commits.AddRange(latestCommits);
     }
 
     private void TearDown()
