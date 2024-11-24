@@ -14,6 +14,29 @@ public class SimpleCommit(LibGit2Sharp.Commit from)
 
 public class Git(AppData appData, GitRepo gr)
 {
+    public void Clone()
+    {
+        var absolutePathToBareGitRepo = Path.Combine(appData.UserAppDataDir.FullName, gr.RepoPath);
+        if (!Path.IsPathRooted(absolutePathToBareGitRepo)) return; // HRM error?
+        if (!Path.IsPathFullyQualified(absolutePathToBareGitRepo)) return; // HRM error?
+
+        if (!Directory.Exists(absolutePathToBareGitRepo))
+        {
+            var cloneOptions = new CloneOptions
+            {
+                IsBare = true,
+                RecurseSubmodules = false,
+                FetchOptions =
+                {
+                    CredentialsProvider = gr.Creds()
+                }
+                // OnCheckoutProgress =  // HRM oooh✨
+            };
+
+            Repository.Clone(gr.GitUrl, absolutePathToBareGitRepo, cloneOptions);
+        }
+    }
+
     public void Fetch()
     {
         var absolutePathToBareGitRepo = Path.Combine(appData.UserAppDataDir.FullName, gr.RepoPath);

@@ -151,6 +151,29 @@ public class MainViewModel : IDisposable
         });
 
         InitRepo = new ReactiveCommand();
+        InitRepo.SubscribeExclusiveAwait(async (_, ct) =>
+        {
+            var p = Project.Value;
+            if (p is null) return;
+            if (p.GitRepo is null) return;
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var git = new Git(AppData.Default, p.GitRepo);
+                    git.Clone();
+                }
+                catch (TaskCanceledException)
+                {
+                    // copypasta.. not sure what could be canceling right now
+                }
+                catch (Exception ex)
+                {
+                    logger.Information(ex, "Clone failed.");
+                }
+            });
+        }).AddTo(ref _disposable);
 
         TearDownCommand = new ReactiveCommand(_ =>
         {
