@@ -142,8 +142,12 @@
                            Text="{Binding SandboxPath.Value}" />
     </Grid>
 
+    <Rectangle DockPanel.Dock="Top" StrokeThickness="2" Stroke="PaleVioletRed" Margin="9 6" />
 
-    <TextBox Text="{Binding ProcessOutput.Value}" />
+    <Label Target="WorkingDir"
+           Content="Output from running app:"
+           DockPanel.Dock="Top" />
+    <TextBox IsReadOnly="True" Text="{Binding ProcessOutput.Value}" />
 
   </DockPanel>
 
