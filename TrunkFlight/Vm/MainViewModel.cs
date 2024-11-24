@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using ObservableCollections;
 using R3;
@@ -41,6 +42,10 @@ public class MainViewModel : IDisposable
         ProcessOutput = new BindableReactiveProperty<string>();
         SandboxPath = new BindableReactiveProperty<string?>();
 
+        var branches = new ObservableList<string>(["main", "foo", "bar"]);
+        GitBranchOptions = branches.ToNotifyCollectionChangedSlim();
+        GitBranchSelected = new BindableReactiveProperty<string?>("main");
+
         var commits = new ObservableList<string>(["HEAD"]);
         GitCommitOptions = commits.ToNotifyCollectionChangedSlim();
         GitCommitSelected = new BindableReactiveProperty<string>("HEAD");
@@ -54,7 +59,7 @@ public class MainViewModel : IDisposable
             if (p?.GitRepo is not null)
             {
                 var git = new Git(AppData.Default, p.GitRepo);
-                UpdateCommitOptions(commits, git);
+                UpdateBranchOptions(branches, git);
             }
         }));
 
@@ -63,6 +68,7 @@ public class MainViewModel : IDisposable
             logger.Information("Command: " + nameof(ProjectUnloadCommand));
             Project.Value = null;
             commits.Clear();
+            branches.Clear();
         });
 
         ProjectUpdateCommand = new ReactiveCommand(_ =>
@@ -75,8 +81,24 @@ public class MainViewModel : IDisposable
 
             var git = new Git(AppData.Default, p.GitRepo);
             git.Fetch();
-            UpdateCommitOptions(commits, git);
+            UpdateBranchOptions(branches, git);
         });
+
+        GitBranchSelected.Subscribe(branchName =>
+            {
+                if (branchName is null) return;
+
+                var p = Project.Value;
+                if (p is null) return;
+                if (p.GitRepo is null) return;
+
+                var git = new Git(AppData.Default, p.GitRepo);
+                commits.Clear();
+                var latestCommits = git.LatestCommits(branchName)
+                    .Select(x1 => x1.ShaShort + " " + x1.MessageShort);
+                commits.AddRange(latestCommits);
+            })
+            .AddTo(ref _disposable);
 
         SandboxCreateCommand = new ReactiveCommand(_ =>
         {
@@ -85,6 +107,7 @@ public class MainViewModel : IDisposable
             var p = Project.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
+            if (GitCommitSelected.Value is not { } commit) return;
 
             var git = new Git(AppData.Default, p.GitRepo);
 
@@ -95,7 +118,7 @@ public class MainViewModel : IDisposable
             // but the csharp api to create a temp dir _path_ is private
             tmpDir.Delete(); // this is ridiculous
 
-            git.Worktree.Add(tmpDirPath, GitCommitSelected.Value);
+            git.Worktree.Add(tmpDirPath, commit.Split(' ')[0]); // TODO hack
             SandboxPath.Value = tmpDirPath;
         });
 
@@ -187,12 +210,15 @@ public class MainViewModel : IDisposable
         MaterialOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
     }
 
-    private static void UpdateCommitOptions(ObservableList<string> commits, Git git)
+    private void UpdateBranchOptions(ObservableList<string> branches, Git git)
     {
-        commits.Clear();
-        var latestCommits = git.LatestCommits()
-            .Select(x => x.ShaShort + " " + x.MessageShort);
-        commits.AddRange(latestCommits);
+        var branchNames = git.RemoteBranchNames();
+        branches.Clear();
+        branches.AddRange(branchNames);
+        if (GitBranchSelected.Value is not { } b || !branchNames.Contains(b))
+        {
+            GitBranchSelected.Value = branchNames.FirstOrDefault();
+        }
     }
 
     private void TearDown()
@@ -233,6 +259,10 @@ public class MainViewModel : IDisposable
 
     public BindableReactiveProperty<string?> SandboxPath { get; }
     public BindableReactiveProperty<string> ProcessOutput { get; }
+
+    public BindableReactiveProperty<string?> GitBranchSelected { get; }
+    public INotifyCollectionChangedSynchronizedViewList<string> GitBranchOptions { get; }
+
     public BindableReactiveProperty<string> GitCommitSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitCommitOptions { get; }
 

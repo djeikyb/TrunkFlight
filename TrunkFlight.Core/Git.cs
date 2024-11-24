@@ -54,14 +54,32 @@ public class Git(AppData appData, GitRepo gr)
         }
     }
 
-    public SimpleCommit[] LatestCommits()
+    /// But only from the remote named "origin"
+    public string[] RemoteBranchNames()
     {
         var absolutePathToBareGitRepo = Path.Combine(appData.UserAppDataDir.FullName, gr.RepoPath);
         if (!Path.IsPathRooted(absolutePathToBareGitRepo)) return []; // HRM error?
         if (!Path.IsPathFullyQualified(absolutePathToBareGitRepo)) return []; // HRM error?
         using var repo = new Repository(absolutePathToBareGitRepo);
-        return repo.Commits
-            .Take(10)
+        return repo.Branches
+            .Where(x => x.IsRemote)
+            .Where(x => x.RemoteName.Equals("origin", StringComparison.InvariantCultureIgnoreCase))
+            .OrderByDescending(x => x.Tip.Committer.When)
+            .Select(x => x.FriendlyName[7..])
+            .Where(x => !"HEAD".Equals(x))
+            .ToArray(); // cf LatestCommits()
+    }
+
+    public SimpleCommit[] LatestCommits(string originBranch)
+    {
+        var absolutePathToBareGitRepo = Path.Combine(appData.UserAppDataDir.FullName, gr.RepoPath);
+        if (!Path.IsPathRooted(absolutePathToBareGitRepo)) return []; // HRM error?
+        if (!Path.IsPathFullyQualified(absolutePathToBareGitRepo)) return []; // HRM error?
+        using var repo = new Repository(absolutePathToBareGitRepo);
+        return repo.Branches
+            .Where(x => x.IsRemote)
+            .Where(x => x.FriendlyName.Equals($"origin/{originBranch}"))
+            .SelectMany(x => x.Commits.Take(10))
             .Select(x => new SimpleCommit(x))
             .ToArray(); // must be called, and must be called last
 
