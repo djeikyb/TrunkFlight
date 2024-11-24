@@ -115,7 +115,7 @@ public class MainViewModel : IDisposable
         });
 
         SandboxRunAppCommand = new ReactiveCommand();
-        SandboxRunAppCommand.SubscribeAwait(async (_, ct) =>
+        SandboxRunAppCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
             logger.Information("Command: " + nameof(SandboxRunAppCommand));
 
@@ -148,7 +148,7 @@ public class MainViewModel : IDisposable
             proc.Start();
             proc.BeginOutputReadLine();
             await proc.WaitForExitAsync(ct);
-        }, AwaitOperation.Drop);
+        });
 
         InitRepo = new ReactiveCommand();
 
