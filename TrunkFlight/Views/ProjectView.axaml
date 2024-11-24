@@ -78,8 +78,8 @@
     <!-- </StackPanel> -->
 
     <ListBox
-      ItemsSource="{Binding GitRefOptions}"
-      SelectedItem="{Binding GitRefSelected.Value}"
+      ItemsSource="{Binding GitCommitOptions}"
+      SelectedItem="{Binding GitCommitSelected.Value}"
       DockPanel.Dock="Top">
     </ListBox>
 

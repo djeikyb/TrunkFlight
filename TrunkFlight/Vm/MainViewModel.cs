@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using ObservableCollections;
 using R3;
@@ -36,17 +36,14 @@ public class MainViewModel : IDisposable
         var projects = new ProjectService(AppData.Default, db);
         var logger = Log.ForContext<MainViewModel>();
 
-        var commits = new ObservableList<string>();
-        Commits = commits.ToNotifyCollectionChangedSlim();
-
         Project = new BindableReactiveProperty<Project?>().AddTo(ref _disposable);
-
 
         ProcessOutput = new BindableReactiveProperty<string>();
         SandboxPath = new BindableReactiveProperty<string?>();
 
-        GitRefOptions = ["HEAD", "125a2e6132c35d03eda6706a84fffd44b289ce6a"];
-        GitRefSelected = new BindableReactiveProperty<string>("HEAD");
+        var commits = new ObservableList<string>(["HEAD"]);
+        GitCommitOptions = commits.ToNotifyCollectionChangedSlim();
+        GitCommitSelected = new BindableReactiveProperty<string>("HEAD");
 
         ProjectLoadCommand = new ReactiveCommand();
         ProjectLoadCommand.SubscribeAwait((async (_, ct) =>
@@ -71,6 +68,10 @@ public class MainViewModel : IDisposable
 
             var git = new Git(AppData.Default, p.GitRepo);
             git.Fetch();
+            commits.Clear();
+            var latestCommits = git.LatestCommits()
+                .Select(x => x.ShaShort + " " + x.MessageShort);
+            commits.AddRange(latestCommits);
         });
 
         SandboxCreateCommand = new ReactiveCommand(_ =>
@@ -90,7 +91,7 @@ public class MainViewModel : IDisposable
             // but the csharp api to create a temp dir _path_ is private
             tmpDir.Delete(); // this is ridiculous
 
-            git.Worktree.Add(tmpDirPath, GitRefSelected.Value);
+            git.Worktree.Add(tmpDirPath, GitCommitSelected.Value);
             SandboxPath.Value = tmpDirPath;
         });
 
@@ -195,12 +196,10 @@ public class MainViewModel : IDisposable
         }
     }
 
-    public INotifyCollectionChangedSynchronizedViewList<string> Commits { get; }
-
     public BindableReactiveProperty<string?> SandboxPath { get; }
     public BindableReactiveProperty<string> ProcessOutput { get; }
-    public BindableReactiveProperty<string> GitRefSelected { get; }
-    public List<string> GitRefOptions { get; }
+    public BindableReactiveProperty<string> GitCommitSelected { get; }
+    public INotifyCollectionChangedSynchronizedViewList<string> GitCommitOptions { get; }
 
     public ReactiveCommand<Unit> ProjectLoadCommand { get; }
     public ReactiveCommand<Unit> ProjectUnloadCommand { get; }

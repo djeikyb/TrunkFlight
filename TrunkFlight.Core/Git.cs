@@ -1,8 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LibGit2Sharp;
 
 namespace TrunkFlight.Core;
+
+public class SimpleCommit(LibGit2Sharp.Commit from)
+{
+    public string ShaShort { get; } = from.Sha[..7];
+    public string MessageShort { get; } = from.MessageShort;
+}
 
 public class Git(AppData appData, GitRepo gr)
 {
@@ -21,6 +29,39 @@ public class Git(AppData appData, GitRepo gr)
                 CredentialsProvider = gr.Creds()
             }, "TrunkFlight fetch");
         }
+    }
+
+    public SimpleCommit[] LatestCommits()
+    {
+        var absolutePathToBareGitRepo = Path.Combine(appData.UserAppDataDir.FullName, gr.RepoPath);
+        if (!Path.IsPathRooted(absolutePathToBareGitRepo)) return []; // HRM error?
+        if (!Path.IsPathFullyQualified(absolutePathToBareGitRepo)) return []; // HRM error?
+        using var repo = new Repository(absolutePathToBareGitRepo);
+        return repo.Commits
+            .Take(10)
+            .Select(x => new SimpleCommit(x))
+            .ToArray(); // must be called, and must be called last
+
+        // 1. Why is a projection needed
+        //
+        // The libgit2sharp.Commit type is lazy. A commit is a node in a
+        // potentially massive directed acyclic graph. The lib chooses to wait
+        // to populate a Commit object's properties until the first access.
+        // This means each property on a Commit needs a reference to a
+        // Repository object. Which, if you'll note above, is disposed at the
+        // end of this function.
+        //
+        // Libgit2sharp's behaviour is probably ideal for a ui that probes thru
+        // a lot of git history. But I just wanna see the last few commits,
+        // given some ref; eg head~10 or ff2b567~10.
+        //
+        // 2. Why not return the IEnumerable? Why ToArray?
+        //
+        // This linq expression produces an IEnumerable with deferred
+        // execution. The projection itself would not be executed in this
+        // function. Instead, the adapter from Commit -> SimpleCommit runs
+        // somewhere up the stack, long after the Repository object was
+        // disposed down here.
     }
 
     public class WorktreeCommand(AppData appData, GitRepo gr)
