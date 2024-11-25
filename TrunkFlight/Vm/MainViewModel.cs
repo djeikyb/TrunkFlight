@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Input.Platform;
 using Microsoft.Extensions.Configuration;
 using ObservableCollections;
 using R3;
@@ -29,7 +31,7 @@ public class MainViewModel : IDisposable
     // 4. load that repo's first commit
     // 5.
 
-    public MainViewModel()
+    public MainViewModel(IClipboard clipboard)
     {
         var config = new ConfigurationBuilder().AddDefaultConfig().AddEnvironmentVariables().Build();
         var db = new DataContext(config);
@@ -51,6 +53,26 @@ public class MainViewModel : IDisposable
         var commits = new ObservableList<string>();
         GitCommitOptions = commits.ToNotifyCollectionChangedSlim();
         GitCommitSelected = new BindableReactiveProperty<string>("HEAD");
+
+        ProjectImportCommand = new ReactiveCommand();
+        ProjectImportCommand.SubscribeExclusiveAwait(async (_, ct) =>
+        {
+            logger.Information("Command: " + nameof(ProjectImportCommand));
+
+            // clipboard.GetFormatsAsync()
+            //     .ContinueWith(formats => { });
+
+            await Task.Run(async () =>
+            {
+                // var formats = await clipboard.GetFormatsAsync();
+                // logger.Information(string.Join(Environment.NewLine, formats));
+                var data = await clipboard.GetTextAsync();
+                if (data is not null)
+                {
+                    UpsertGitRepoAndProject(data, db);
+                }
+            });
+        });
 
         ProjectLoadCommand = new ReactiveCommand();
         ProjectLoadCommand.SubscribeAwait((async (_, ct) =>
@@ -230,6 +252,86 @@ public class MainViewModel : IDisposable
         }
     }
 
+    private static void UpsertGitRepoAndProject(string projectData, DataContext db)
+    {
+        // SAMPLE
+        // string projectData = """
+        //                 git.repo=https://gitlab.eikongroup.io/Eikon/dcp/noetik.git
+        //                 git.user=redacted
+        //                 git.pass=redacted
+        //                 project.name=some project name
+        //                 project.command=dotnet run --project Prototype.Reels
+        //                 """;
+
+        var logger = Log.ForContext<MainViewModel>();
+        Dictionary<string, string> d = new();
+        try
+        {
+            foreach (var ln in projectData.Split(Environment.NewLine))
+            {
+                if (string.Empty.Equals(ln)) continue;
+                var kv = ln.Split('=', count: 2); // split exactly once
+                d[kv[0]] = kv[1];
+            }
+
+            if (!d.ContainsKey("git.repo")) throw new Exception("Invalid project data: missing key: git.repo");
+
+            if (d["git.repo"].StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!d.ContainsKey("git.user")) throw new Exception("Invalid project data: missing key: git.user");
+                if (!d.ContainsKey("git.pass")) throw new Exception("Invalid project data: missing key: git.pass");
+            }
+
+            if (!d.ContainsKey("project.name")) throw new Exception("Invalid project data: missing key: project.name");
+            if (!d.ContainsKey("project.command"))
+                throw new Exception("Invalid project data: missing key: project.command");
+        }
+        catch (Exception e)
+        {
+            logger.Error(e, "Failed to parse config.");
+            return;
+        }
+
+        var repo = db.GitRepos.FirstOrDefault(x => x.GitUrl.Equals(d["git.repo"]));
+        if (repo is null)
+        {
+            var gitRepo = new GitRepo
+            {
+                RepoPath = AppData.Default.GenerateRepoPath(d["git.repo"]),
+                GitUrl = d["git.repo"]
+            };
+            if (d.TryGetValue("git.user", out var user))
+                gitRepo.Username = user;
+            if (d.TryGetValue("git.pass", out var pass))
+                gitRepo.Password = pass;
+            repo = db.GitRepos.Add(gitRepo).Entity;
+            db.SaveChanges();
+        }
+        else
+        {
+            if (d.TryGetValue("git.user", out var user))
+                repo.Username = user;
+            if (d.TryGetValue("git.pass", out var pass))
+                repo.Password = pass;
+        }
+
+        var proj = db.Projects.FirstOrDefault(x => x.Name.Equals(d["project.name"]));
+        if (proj is null)
+        {
+            proj = db.Projects.Add(new Project
+            {
+                GitRepoId = repo.GitRepoId,
+                Name = d["project.name"],
+                Command = d["project.command"],
+            }).Entity;
+            db.SaveChanges();
+        }
+        else
+        {
+            proj.Command = d["project.command"];
+            db.SaveChanges();
+        }
+    }
 
     [Flags]
     enum TeardownOptions
@@ -293,6 +395,7 @@ public class MainViewModel : IDisposable
     public ReactiveCommand<Unit> ProjectLoadCommand { get; }
     public ReactiveCommand<Unit> ProjectUnloadCommand { get; }
     public ReactiveCommand<Unit> ProjectUpdateCommand { get; }
+    public ReactiveCommand<Unit> ProjectImportCommand { get; }
 
 
     public ReactiveCommand<Unit> SandboxCreateCommand { get; }

@@ -64,6 +64,9 @@
               HorizontalAlignment="Stretch"
               Command="{Binding SandboxDestroyCommand}" />
       <TextBlock Text="Use with caution." />
+      <Button Content="Import project"
+              HorizontalAlignment="Stretch"
+              Command="{Binding ProjectImportCommand}" />
       <Button Content="Remove all sandboxes"
               HorizontalAlignment="Stretch"
               Command="{Binding SandboxDestroyAllCommand}" />
