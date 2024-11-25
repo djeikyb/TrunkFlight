@@ -25,13 +25,12 @@ public class Git(AppData appData, GitRepo gr)
             var cloneOptions = new CloneOptions
             {
                 IsBare = true,
-                RecurseSubmodules = false,
-                FetchOptions =
-                {
-                    CredentialsProvider = gr.Creds()
-                }
-                // OnCheckoutProgress =  // HRM oooh✨
+                RecurseSubmodules = false
             };
+            if (new Uri(gr.GitUrl).Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            {
+                cloneOptions.FetchOptions.CredentialsProvider = gr.Creds(); // OnCheckoutProgress =  // HRM oooh✨
+            }
 
             Repository.Clone(gr.GitUrl, absolutePathToBareGitRepo, cloneOptions);
         }
@@ -45,12 +44,17 @@ public class Git(AppData appData, GitRepo gr)
         using var repo = new Repository(absolutePathToBareGitRepo);
         foreach (var remote in repo.Network.Remotes)
         {
-            Commands.Fetch(repo, remote.Name, [], new FetchOptions
+            var fetchOptions = new FetchOptions
             {
                 // HRM oooooo OnCheckoutProgress ✨
-                Prune = true,
-                CredentialsProvider = gr.Creds()
-            }, "TrunkFlight fetch");
+                Prune = true
+            };
+            if (new Uri(gr.GitUrl).Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            {
+                fetchOptions.CredentialsProvider = gr.Creds();
+            }
+
+            Commands.Fetch(repo, remote.Name, [], fetchOptions, "TrunkFlight fetch");
         }
     }
 

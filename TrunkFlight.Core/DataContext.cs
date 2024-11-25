@@ -12,7 +12,7 @@ public class Project
     public GitRepo? GitRepo { get; init; }
 
     [MaxLength(2048)] public required string Name { get; init; }
-    [MaxLength(2048)] public required string Command { get; init; }
+    [MaxLength(2048)] public required string Command { get; set; }
 }
 
 public class GitRepo
@@ -24,8 +24,8 @@ public class GitRepo
     public required string RepoPath { get; init; }
 
     [MaxLength(1024)] public required string GitUrl { get; init; }
-    [MaxLength(256)] public required string Username { get; init; }
-    [MaxLength(256)] public required string Password { get; init; }
+    [MaxLength(256)] public string? Username { get; set; }
+    [MaxLength(256)] public string? Password { get; set; }
 }
 
 public class DataContext(IConfiguration config) : DbContext

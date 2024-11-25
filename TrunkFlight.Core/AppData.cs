@@ -54,19 +54,34 @@ public class AppData
     {
         string littleEndianHost;
         string hostPath;
+        string repoPath;
         if (gitUrl.StartsWith("http"))
         {
             var uri = new Uri(gitUrl);
             littleEndianHost = string.Join('.', uri.Host.Split('.').Reverse());
             hostPath = uri.AbsolutePath;
+            repoPath = Path.Combine(["src", littleEndianHost, ..hostPath.Split('/')]);
+        }
+        else if (gitUrl.StartsWith("file://"))
+        {
+            var sourcePath = new Uri(gitUrl).AbsolutePath;
+            string name;
+            if (".git".Equals(Path.GetFileName(sourcePath)))
+            {
+                name = Path.GetFileName(Path.GetDirectoryName(sourcePath));
+            }
+            else
+            {
+                name = Path.GetFileName(sourcePath);
+            }
+            repoPath = Path.Combine(["src", "file", name]);
         }
         else
         {
             throw new Exception("Unsupported git url format or protocol.");
         }
 
-        var path = Path.Combine(["src", littleEndianHost, ..hostPath.Split('/')]);
         // avoid inline, friendly to debugger
-        return path;
+        return repoPath;
     }
 }
