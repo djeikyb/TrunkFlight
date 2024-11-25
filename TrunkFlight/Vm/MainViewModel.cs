@@ -18,7 +18,7 @@ public class MainViewModel : IDisposable
 
     public void Dispose()
     {
-        TearDown();
+        TearDown(TeardownOptions.SandboxDirs);
         _disposable.Dispose();
     }
 
@@ -42,11 +42,11 @@ public class MainViewModel : IDisposable
         ProcessOutput = new BindableReactiveProperty<string>();
         SandboxPath = new BindableReactiveProperty<string?>();
 
-        var branches = new ObservableList<string>(["main", "foo", "bar"]);
+        var branches = new ObservableList<string>();
         GitBranchOptions = branches.ToNotifyCollectionChangedSlim();
         GitBranchSelected = new BindableReactiveProperty<string?>("main");
 
-        var commits = new ObservableList<string>(["HEAD"]);
+        var commits = new ObservableList<string>();
         GitCommitOptions = commits.ToNotifyCollectionChangedSlim();
         GitCommitSelected = new BindableReactiveProperty<string>("HEAD");
 
@@ -137,6 +137,11 @@ public class MainViewModel : IDisposable
             ProcessOutput.Value = string.Empty;
         });
 
+        SandboxDestroyAllCommand = new ReactiveCommand(_ =>
+        {
+            TearDown(TeardownOptions.SandboxDirs);
+        });
+
         SandboxRunAppCommand = new ReactiveCommand();
         SandboxRunAppCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
@@ -198,10 +203,10 @@ public class MainViewModel : IDisposable
             });
         }).AddTo(ref _disposable);
 
-        TearDownCommand = new ReactiveCommand(_ =>
+        DeleteRepo = new ReactiveCommand(_ =>
         {
-            logger.Information("Command: " + nameof(TearDownCommand));
-            TearDown();
+            logger.Information("Command: " + nameof(DeleteRepo));
+            TearDown(TeardownOptions.BareGitRepo | TeardownOptions.SandboxDirs);
         });
 
         View = App.LogsSink.Logs.ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher.Current);
@@ -221,9 +226,18 @@ public class MainViewModel : IDisposable
         }
     }
 
-    private void TearDown()
+
+    [Flags]
+    enum TeardownOptions
     {
-        if (Project.Value?.GitRepo?.RepoPath is { } repoPath)
+        BareGitRepo = 1 << 0,
+        SandboxDirs = 1 << 1,
+    }
+
+    private void TearDown(TeardownOptions options)
+    {
+        if (options.HasFlag(TeardownOptions.BareGitRepo)
+            && Project.Value?.GitRepo?.RepoPath is { } repoPath)
         {
             var hack = Path.Combine(AppData.Default.UserAppDataDir.FullName, repoPath);
             try
@@ -236,24 +250,30 @@ public class MainViewModel : IDisposable
             }
         }
 
-        var myTempDirRoot = "/private/var/folders/9m/25nqg0sd5b51pm8dz78j31740000gn"; // TODO hack
-        var tempDirs = Directory.EnumerateDirectories(myTempDirRoot, "merviche.trunkflight.*", new EnumerationOptions
+        if (options.HasFlag(TeardownOptions.SandboxDirs))
         {
-            RecurseSubdirectories = true,
-            MatchCasing = MatchCasing.CaseSensitive,
-            MatchType = MatchType.Simple,
-            MaxRecursionDepth = 2,
-            ReturnSpecialDirectories = false,
-            IgnoreInaccessible = true,
-        });
+            var myTempDirRoot = "/private/var/folders/9m/25nqg0sd5b51pm8dz78j31740000gn"; // TODO hack
+            var tempDirs = Directory.EnumerateDirectories(myTempDirRoot, "merviche.trunkflight.*",
+                new EnumerationOptions
+                {
+                    RecurseSubdirectories = true,
+                    MatchCasing = MatchCasing.CaseSensitive,
+                    MatchType = MatchType.Simple,
+                    MaxRecursionDepth = 2,
+                    ReturnSpecialDirectories = false,
+                    IgnoreInaccessible = true,
+                });
 
-        foreach (var dir in tempDirs)
-        {
-            if (!Path.IsPathRooted(dir)) continue;
-            if (!Path.IsPathFullyQualified(dir)) continue;
-            var dirname = Path.GetFileName(dir);
-            if (!dirname.StartsWith("merviche.trunkflight.")) continue;
-            Directory.Delete(dir, true);
+            foreach (var dir in tempDirs)
+            {
+                if (!Path.IsPathRooted(dir)) continue;
+                if (!Path.IsPathFullyQualified(dir)) continue;
+                var dirname = Path.GetFileName(dir);
+                if (!dirname.StartsWith("merviche.trunkflight.")) continue;
+                Directory.Delete(dir, true);
+            }
+
+            SandboxPath.Value = null;
         }
     }
 
@@ -273,10 +293,11 @@ public class MainViewModel : IDisposable
 
     public ReactiveCommand<Unit> SandboxCreateCommand { get; }
     public ReactiveCommand<Unit> SandboxDestroyCommand { get; }
+    public ReactiveCommand<Unit> SandboxDestroyAllCommand { get; }
     public ReactiveCommand<Unit> SandboxRunAppCommand { get; }
 
     public ReactiveCommand<Unit> InitRepo { get; }
-    public ReactiveCommand<Unit> TearDownCommand { get; }
+    public ReactiveCommand<Unit> DeleteRepo { get; }
 
 
     public BindableReactiveProperty<Project?> Project { get; }

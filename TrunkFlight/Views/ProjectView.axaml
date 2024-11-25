@@ -64,12 +64,15 @@
               HorizontalAlignment="Stretch"
               Command="{Binding SandboxDestroyCommand}" />
       <TextBlock Text="Use with caution." />
-      <Button Content="Init"
+      <Button Content="Remove all sandboxes"
+              HorizontalAlignment="Stretch"
+              Command="{Binding SandboxDestroyAllCommand}" />
+      <Button Content="Remove git repo"
+              HorizontalAlignment="Stretch"
+              Command="{Binding DeleteRepo}" />
+      <Button Content="Init git repo"
               HorizontalAlignment="Stretch"
               Command="{Binding InitRepo}" />
-      <Button Content="Clean"
-              HorizontalAlignment="Stretch"
-              Command="{Binding TearDownCommand}" />
     </StackPanel>
 
     <!-- <StackPanel DockPanel.Dock="Top" DataContext="{Binding Project.Value}"> -->
