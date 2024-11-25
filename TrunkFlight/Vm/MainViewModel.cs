@@ -183,6 +183,8 @@ public class MainViewModel : IDisposable
         InitRepo = new ReactiveCommand();
         InitRepo.SubscribeExclusiveAwait(async (_, ct) =>
         {
+            logger.Information("Command: " + nameof(InitRepo));
+
             var p = Project.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
