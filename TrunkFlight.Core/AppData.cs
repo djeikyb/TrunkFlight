@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace TrunkFlight.Core;
 
@@ -14,7 +15,7 @@ public class AppData
         {
             // TODO: cache result
 
-            var userAppDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var userAppDataDir = LocalAppDataFolder();
             if (string.Empty.Equals(userAppDataDir)) throw new Exception("Base app data folder does not exist.");
 
             var path = Path.Combine(userAppDataDir, "merviche.trunkflight");
@@ -22,6 +23,29 @@ public class AppData
             if (!di.Exists) di.Create();
             return di;
         }
+    }
+
+    private static string LocalAppDataFolder()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            if (Environment.GetEnvironmentVariable("XDG_DATA_HOME") is { } s) return s;
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, ".local", "share");
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, "Library", "Application Support");
+        }
+
+        throw new NotImplementedException("Unsupported OS.");
     }
 
     /// Use when assigning <see cref="GitRepo.RepoPath"/>.

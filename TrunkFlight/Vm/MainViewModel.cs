@@ -37,6 +37,8 @@ public class MainViewModel : IDisposable
         var projects = new ProjectService(AppData.Default, db);
         var logger = Log.ForContext<MainViewModel>();
 
+        logger.Information(AppData.Default.UserAppDataDir.FullName);
+
         Project = new BindableReactiveProperty<Project?>().AddTo(ref _disposable);
 
         ProcessOutput = new BindableReactiveProperty<string>();
