@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Chell" Version="1.0.0"/>
     <PackageReference Include="LibGit2Sharp" Version="0.30.0"/>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0"/>
     <PackageReference Include="Ulid" Version="1.3.4"/>
