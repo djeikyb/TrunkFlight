@@ -51,7 +51,7 @@
                Margin="0 0 0 0"
                DockPanel.Dock="Bottom" />
 
-    <views:ProjectView Background="White" />
+    <views:ProjectView />
 
 
   </DockPanel>
