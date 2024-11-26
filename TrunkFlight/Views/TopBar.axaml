@@ -7,13 +7,14 @@
              x:DataType="vm:MainViewModel"
              x:Class="TrunkFlight.Views.TopBar">
   <Grid ColumnDefinitions="* * *">
-    <Panel Background="#aaDDA0DD" IsHitTestVisible="False"
+    <Panel Background="#aaDDA0DD"
+           IsHitTestVisible="False"
            Grid.Column="0" />
-    <Panel
-      Background="PaleTurquoise"
-      IsHitTestVisible="False"
-      Grid.Column="1" />
-    <Panel Background="LightGoldenrodYellow" IsHitTestVisible="False"
+    <Panel Background="PaleTurquoise"
+           IsHitTestVisible="False"
+           Grid.Column="1" />
+    <Panel Background="LightGoldenrodYellow"
+           IsHitTestVisible="False"
            Grid.Column="2" />
   </Grid>
 </UserControl>
