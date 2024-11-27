@@ -1,20 +1,21 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TrunkFlight.App"
-             RequestedThemeVariant="Default">
+             >
   <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <MergeResourceInclude Source="/Themes.axaml" />
+        <!-- <MergeResourceInclude Source="/Themes.axaml" /> -->
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
-    <FluentTheme DensityStyle="Compact" />
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
+    <!-- <FluentTheme DensityStyle="Compact" /> -->
+    <!-- <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" /> -->
+    <ClassicTheme />
     <StyleInclude Source="Views/LabeledText.axaml" />
     <StyleInclude Source="Views/LabeledTextBox.axaml" />
   </Application.Styles>

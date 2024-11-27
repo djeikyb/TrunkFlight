@@ -8,6 +8,11 @@
              x:DataType="vm:MainViewModel"
              x:Class="TrunkFlight.Views.MainView">
   <DockPanel>
+
+    <views:TopBar Background="{x:Null}"
+                  Height="{Binding $parent[Window].WindowDecorationMargin.Top}"
+                  DockPanel.Dock="Top" />
+
     <views:SideBar Width="126"
                    Margin="{Binding $parent[Window].WindowDecorationMargin}"
                    DockPanel.Dock="Left" />
@@ -21,10 +26,6 @@
                Fill="{DynamicResource TitleBarSeparatorColorBottom}"
                Margin="0 0 0 0"
                DockPanel.Dock="Left" />
-
-    <views:TopBar Background="{x:Null}"
-                  Height="{Binding $parent[Window].WindowDecorationMargin.Top}"
-                  DockPanel.Dock="Top" />
 
     <Rectangle HorizontalAlignment="Stretch"
                Height="0.5"

@@ -6,15 +6,22 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:MainViewModel"
              x:Class="TrunkFlight.Views.TopBar">
-  <Grid ColumnDefinitions="* 2* 3*">
-    <Panel Background="#aaDDA0DD"
-           IsHitTestVisible="False"
-           Grid.Column="2" />
-    <Panel Background="PaleTurquoise"
-           IsHitTestVisible="False"
-           Grid.Column="1" />
-    <Panel Background="LightGoldenrodYellow"
-           IsHitTestVisible="False"
-           Grid.Column="0" />
-  </Grid>
+    <Panel IsHitTestVisible="False">
+      <Panel.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+          <GradientStop Color="LightGoldenrodYellow" Offset="0.0" />
+          <GradientStop Color="PaleTurquoise" Offset="0.4" />
+          <GradientStop Color="#aaDDA0DD" Offset="0.8" />
+        </LinearGradientBrush>
+      </Panel.Background>
+    </Panel>
+    <!-- <Panel Background="#aaDDA0DD" -->
+    <!--        IsHitTestVisible="False" -->
+    <!--        Grid.Column="2" /> -->
+    <!-- <Panel Background="PaleTurquoise" -->
+    <!--        IsHitTestVisible="False" -->
+    <!--        Grid.Column="1" /> -->
+    <!-- <Panel Background="LightGoldenrodYellow" -->
+    <!--        IsHitTestVisible="False" -->
+    <!--        Grid.Column="0" /> -->
 </UserControl>

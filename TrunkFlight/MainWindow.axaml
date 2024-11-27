@@ -11,24 +11,25 @@
 
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="Default, PreferSystemChrome, OSXThickTitleBar"
+        ExtendClientAreaChromeHints="Default, PreferSystemChrome"
         SystemDecorations="Full"
-        Background="{x:Null}"
+
+        FontFamily="Microsoft Sans Serif"
 
         Name="Main"
         x:Class="TrunkFlight.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="TrunkFlight">
   <Panel>
-    <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Left">
-      <ExperimentalAcrylicBorder.Material>
-        <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                     TintColor="{DynamicResource SystemChromeLowColor}"
-                                     FallbackColor="{DynamicResource SystemChromeLowColor}"
-                                     TintOpacity="{Binding TintOpacity.Value}"
-                                     MaterialOpacity="{Binding MaterialOpacity.Value}" />
-      </ExperimentalAcrylicBorder.Material>
-    </ExperimentalAcrylicBorder>
+    <!-- <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Left"> -->
+    <!--   <ExperimentalAcrylicBorder.Material> -->
+    <!--     <ExperimentalAcrylicMaterial BackgroundSource="Digger" -->
+    <!--                                  TintColor="{DynamicResource SystemChromeLowColor}" -->
+    <!--                                  FallbackColor="{DynamicResource SystemChromeLowColor}" -->
+    <!--                                  TintOpacity="{Binding TintOpacity.Value}" -->
+    <!--                                  MaterialOpacity="{Binding MaterialOpacity.Value}" /> -->
+    <!--   </ExperimentalAcrylicBorder.Material> -->
+    <!-- </ExperimentalAcrylicBorder> -->
     <Panel Margin="{Binding $parent[Window].OffScreenMargin}">
       <views:MainView />
     </Panel>
