@@ -53,11 +53,11 @@ public class MainViewModel : IDisposable
 
         var branches = new ObservableList<string>();
         GitBranchOptions = branches.ToNotifyCollectionChangedSlim();
-        GitBranchSelected = new BindableReactiveProperty<string?>("main");
+        GitBranchSelected = new BindableReactiveProperty<string?>();
 
         var commits = new ObservableList<string>();
         GitCommitOptions = commits.ToNotifyCollectionChangedSlim();
-        GitCommitSelected = new BindableReactiveProperty<string>("HEAD");
+        GitCommitSelected = new BindableReactiveProperty<string?>();
 
         ProjectImportCommand = new ReactiveCommand();
         ProjectImportCommand.SubscribeExclusiveAwait(async (_, ct) =>
@@ -89,6 +89,7 @@ public class MainViewModel : IDisposable
             {
                 var git = new Git(AppData.Default, p.GitRepo);
                 UpdateBranchOptions(branches, git);
+                UpdateCommitOptions(commits, git);
             }
         }));
 
@@ -111,6 +112,7 @@ public class MainViewModel : IDisposable
             var git = new Git(AppData.Default, p.GitRepo);
             git.Fetch();
             UpdateBranchOptions(branches, git);
+            UpdateCommitOptions(commits, git);
         });
 
         GitBranchSelected.Subscribe(branchName =>
@@ -122,10 +124,7 @@ public class MainViewModel : IDisposable
                 if (p.GitRepo is null) return;
 
                 var git = new Git(AppData.Default, p.GitRepo);
-                commits.Clear();
-                var latestCommits = git.LatestCommits(branchName)
-                    .Select(x1 => x1.ShaShort + " " + x1.MessageShort);
-                commits.AddRange(latestCommits);
+                UpdateCommitOptions(commits, git);
             })
             .AddTo(ref _disposable);
 
@@ -248,12 +247,62 @@ public class MainViewModel : IDisposable
 
     private void UpdateBranchOptions(ObservableList<string> branches, Git git)
     {
+        var gbs = GitBranchSelected.Value;
+
+        // The ObservableList::Clear is synchronized!
+        //
+        // I think the ui render doesn't happen until the Command function
+        // exits. But the ui controls seem to be notified and take their
+        // action immediately. The ListBox nulls out the selected item, which
+        // is bound to the selected branch. Adter the Clear, the selected
+        // branch is null. So we capture that value before clear, then sort out
+        // if it's still useful.
+
         var branchNames = git.RemoteBranchNames();
         branches.Clear();
         branches.AddRange(branchNames);
-        if (GitBranchSelected.Value is not { } b || !branchNames.Contains(b))
+
+        if (gbs is null)
         {
             GitBranchSelected.Value = branchNames.FirstOrDefault();
+        }
+        else if (branchNames.Contains(gbs))
+        {
+            GitBranchSelected.Value = gbs;
+        }
+        else
+        {
+            GitBranchSelected.Value = branchNames.FirstOrDefault();
+        }
+    }
+
+    private void UpdateCommitOptions(ObservableList<string> commits, Git git)
+    {
+        var branchName = GitBranchSelected.Value;
+        if (branchName is null) return;
+
+        var gcs = GitCommitSelected.Value;
+
+        // it's important to capture the selected commit before calling clear
+        // cf UpdateBranchOptions
+
+        var latestCommits = git
+            .LatestCommits(branchName)
+            .Select(x1 => x1.ShaShort + " " + x1.MessageShort);
+        commits.Clear();
+        commits.AddRange(latestCommits);
+
+        if (gcs is null)
+        {
+            GitCommitSelected.Value = commits.FirstOrDefault();
+        }
+        else if (commits.Contains(gcs))
+        {
+            GitCommitSelected.Value = gcs;
+        }
+        else
+        {
+            GitCommitSelected.Value = commits.FirstOrDefault();
         }
     }
 
@@ -373,7 +422,7 @@ public class MainViewModel : IDisposable
     public BindableReactiveProperty<string?> GitBranchSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitBranchOptions { get; }
 
-    public BindableReactiveProperty<string> GitCommitSelected { get; }
+    public BindableReactiveProperty<string?> GitCommitSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitCommitOptions { get; }
 
     public ReactiveCommand<Unit> ProjectLoadCommand { get; }
