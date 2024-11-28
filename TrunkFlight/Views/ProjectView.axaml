@@ -37,6 +37,10 @@
         </ColumnDefinitions>
       </Setter>
     </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="Background"
+              Value="hsl(38, 14%, 83%)" />
+    </Style>
   </UserControl.Styles>
 
   <DockPanel>
