@@ -71,6 +71,7 @@
           Name="BranchList"
           ItemsSource="{Binding GitBranchOptions}"
           SelectedItem="{Binding GitBranchSelected.Value}">
+          <ScrollViewer.HorizontalScrollBarVisibility>Hidden</ScrollViewer.HorizontalScrollBarVisibility>
         </ListBox>
 
         <Label
@@ -84,6 +85,7 @@
           Name="CommitList"
           ItemsSource="{Binding GitCommitOptions}"
           SelectedItem="{Binding GitCommitSelected.Value}">
+          <ScrollViewer.HorizontalScrollBarVisibility>Hidden</ScrollViewer.HorizontalScrollBarVisibility>
         </ListBox>
       </Grid>
 
