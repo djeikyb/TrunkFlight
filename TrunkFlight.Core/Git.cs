@@ -187,7 +187,25 @@ public class Git(AppData appData, GitRepo gr)
                 var gitDir = File.ReadAllText(worktreeInfoGitDir);
                 var worktreeDir = Path.GetDirectoryName(gitDir);
                 if (worktreeDir is null) continue;
-                var realpathWorktreeDir = new DirectoryInfo(worktreeDir).Realpath();
+                DirectoryInfo realpathWorktreeDir;
+                try
+                {
+                    // try to avoid the exception. racy, but w/e, it should
+                    // reduce the odds of allocating a useless stacktrace
+                    if (!Directory.Exists(worktreeDir)) continue;
+
+                    // cf man 3 realpath
+                    realpathWorktreeDir = new DirectoryInfo(worktreeDir).Realpath();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    // git has a worktree record that points to a path that no
+                    // longer exists. this doesn't feel like a good time to
+                    // prune it. we're in the middle of a specific prune
+                    // operation; let's not tamper with other records.
+                    continue;
+                }
+
                 if (!realpathWorktreeDir.FullName.Equals(realpathWorktree.FullName)) continue;
 
                 var worktreeInfoDir = Path.GetDirectoryName(worktreeInfoGitDir);
