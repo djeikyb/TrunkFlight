@@ -13,19 +13,19 @@
                   Height="{Binding $parent[Window].WindowDecorationMargin.Top}"
                   DockPanel.Dock="Top" />
 
-    <views:SideBar Width="126"
-                   Margin="{Binding $parent[Window].WindowDecorationMargin}"
-                   DockPanel.Dock="Left" />
-    <Rectangle HorizontalAlignment="Stretch"
-               Width="0.5"
-               Fill="{DynamicResource TitleBarSeparatorColorTop}"
-               Margin="0 0 0 0"
-               DockPanel.Dock="Left" />
-    <Rectangle HorizontalAlignment="Stretch"
-               Width="0.5"
-               Fill="{DynamicResource TitleBarSeparatorColorBottom}"
-               Margin="0 0 0 0"
-               DockPanel.Dock="Left" />
+    <!-- <views:SideBar Width="126" -->
+    <!--                Margin="{Binding $parent[Window].WindowDecorationMargin}" -->
+    <!--                DockPanel.Dock="Left" /> -->
+    <!-- <Rectangle HorizontalAlignment="Stretch" -->
+    <!--            Width="0.5" -->
+    <!--            Fill="{DynamicResource TitleBarSeparatorColorTop}" -->
+    <!--            Margin="0 0 0 0" -->
+    <!--            DockPanel.Dock="Left" /> -->
+    <!-- <Rectangle HorizontalAlignment="Stretch" -->
+    <!--            Width="0.5" -->
+    <!--            Fill="{DynamicResource TitleBarSeparatorColorBottom}" -->
+    <!--            Margin="0 0 0 0" -->
+    <!--            DockPanel.Dock="Left" /> -->
 
     <Rectangle HorizontalAlignment="Stretch"
                Height="0.5"
