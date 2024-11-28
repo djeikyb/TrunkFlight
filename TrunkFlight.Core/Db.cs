@@ -17,6 +17,18 @@ public class Project
 
     public required string Name { get; init; }
     public required string Command { get; set; }
+
+    protected bool Equals(Project other) => ProjectId == other.ProjectId;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((Project)obj);
+    }
+
+    public override int GetHashCode() => ProjectId;
 }
 
 public class GitRepo
@@ -131,6 +143,41 @@ public class Db : IDisposable
 
         // don't inline, be kind to debuggers
         return project;
+    }
+
+    public List<Project> Projects()
+    {
+        using var select = _connection.CreateCommand();
+        select.CommandText = """
+                             select p.*, gr.*
+                             from projects p
+                             join git_repos gr on gr.git_repo_id = p.git_repo_id
+                             order by p.project_id desc 
+                             """;
+
+        using var reader = select.ExecuteReader(CommandBehavior.Default);
+        List<Project> projects = [];
+        while (reader.Read())
+        {
+            var project = new Project
+            {
+                ProjectId = reader.GetInt32(0),
+                GitRepoId = reader.GetInt32(1),
+                Name = reader.GetString(2),
+                Command = reader.GetString(3),
+                GitRepo = new GitRepo
+                {
+                    GitRepoId = reader.GetInt32(4),
+                    RepoPath = reader.GetString(5),
+                    GitUrl = reader.GetString(6),
+                    Username = reader.GetString(7),
+                    Password = reader.GetString(8),
+                },
+            };
+            projects.Add(project);
+        }
+
+        return projects;
     }
 
     public void Save(GitRepo gr)

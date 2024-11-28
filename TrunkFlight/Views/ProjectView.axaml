@@ -50,7 +50,7 @@
 
       <Grid Classes="row"
             DockPanel.Dock="Top"
-            DataContext="{Binding Project.Value}">
+            DataContext="{Binding ProjectSelected.Value}">
         <Label Target="ProjectName"
                Content="Project:" />
         <SelectableTextBlock Name="ProjectName"
@@ -61,7 +61,7 @@
 
       <Grid Classes="row"
             DockPanel.Dock="Top"
-            DataContext="{Binding Project.Value}">
+            DataContext="{Binding ProjectSelected.Value}">
         <Label Target="Command"
                Content="Command:" />
         <SelectableTextBlock Name="Command"
@@ -80,16 +80,24 @@
                              Text="{Binding SandboxPath.Value}" />
       </Grid>
 
-      <!-- <TextBlock Text="Start here." /> -->
-      <Button Content="Load project (cheat)"
-              HorizontalAlignment="Stretch"
-              Command="{Binding ProjectLoadCommand}" />
-      <Button Content="Fetch Updates"
-              HorizontalAlignment="Stretch"
-              Command="{Binding ProjectUpdateCommand}" />
-      <Button Content="Unload project"
-              HorizontalAlignment="Stretch"
-              Command="{Binding ProjectUnloadCommand}" />
+      <Label
+        Target="ProjectList"
+        Content="Projects:" />
+      <ListBox
+        Name="ProjectList"
+        MinHeight="50"
+        SelectedItem="{Binding ProjectSelected.Value}"
+        ItemsSource="{Binding ProjectOptions}">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock>
+              <Run Text="{Binding Name}" />
+              <Run Text=":" />
+              <Run Text="{Binding Command}" />
+            </TextBlock>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
 
       <Grid
         RowDefinitions="Auto *"

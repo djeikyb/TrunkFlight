@@ -46,7 +46,9 @@ public class MainViewModel : IDisposable
 
         logger.Information(AppData.Default.UserAppDataDir.FullName);
 
-        Project = new BindableReactiveProperty<Project?>().AddTo(ref _disposable);
+        var projects = new ObservableList<Project>(db.Projects());
+        ProjectOptions = projects.ToNotifyCollectionChangedSlim();
+        ProjectSelected = new BindableReactiveProperty<Project?>().AddTo(ref _disposable);
 
         ProcessOutput = new BindableReactiveProperty<string>();
         SandboxPath = new BindableReactiveProperty<string?>();
@@ -75,37 +77,37 @@ public class MainViewModel : IDisposable
                 if (data is not null)
                 {
                     UpsertGitRepoAndProject(data, db);
+
+                    // maybe it's a little much to do some set calculations
+                    // to make sure our in-memory list has everything from the
+                    // db. then again, why not? but ask.. how would the db have
+                    // more than a single new record?
+                    
+                    var projectsFromDb = db.Projects();
+                    var notLocally = projectsFromDb.Except(projects);
+                    var notInDb = projects.Except(projectsFromDb);
+                    projects.AddRange(notLocally);
+                    foreach (var nid in notInDb)
+                    {
+                        projects.Remove(nid);
+                    }
                 }
             });
         });
 
-        ProjectLoadCommand = new ReactiveCommand();
-        ProjectLoadCommand.Subscribe((_ =>
+        ProjectSelected.Subscribe(p =>
         {
-            logger.Information("Command: " + nameof(ProjectLoadCommand));
-            var p = db.LatestProject();
-            Project.Value = p;
-            if (p?.GitRepo is not null)
-            {
-                var git = new Git(AppData.Default, p.GitRepo);
-                UpdateBranchOptions(branches, git);
-                UpdateCommitOptions(commits, git);
-            }
-        }));
-
-        ProjectUnloadCommand = new ReactiveCommand(_ =>
-        {
-            logger.Information("Command: " + nameof(ProjectUnloadCommand));
-            Project.Value = null;
-            commits.Clear();
-            branches.Clear();
+            if (p?.GitRepo is null) return;
+            var git = new Git(AppData.Default, p.GitRepo);
+            UpdateBranchOptions(branches, git);
+            UpdateCommitOptions(commits, git);
         });
 
         ProjectUpdateCommand = new ReactiveCommand(_ =>
         {
             logger.Information("Command: " + nameof(ProjectUpdateCommand));
 
-            var p = Project.Value;
+            var p = ProjectSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
 
@@ -119,7 +121,7 @@ public class MainViewModel : IDisposable
             {
                 if (branchName is null) return;
 
-                var p = Project.Value;
+                var p = ProjectSelected.Value;
                 if (p is null) return;
                 if (p.GitRepo is null) return;
 
@@ -132,7 +134,7 @@ public class MainViewModel : IDisposable
         {
             logger.Information("Command: " + nameof(SandboxCreateCommand));
 
-            var p = Project.Value;
+            var p = ProjectSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
             if (GitCommitSelected.Value is not { } commit) return;
@@ -155,7 +157,7 @@ public class MainViewModel : IDisposable
             logger.Information("Command: " + nameof(SandboxDestroyCommand));
             if (SandboxPath.Value is not { } path) return;
 
-            var p = Project.Value;
+            var p = ProjectSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
 
@@ -175,7 +177,7 @@ public class MainViewModel : IDisposable
         {
             logger.Information("Command: " + nameof(SandboxRunAppCommand));
 
-            if (Project.Value is not { } proj) return;
+            if (ProjectSelected.Value is not { } proj) return;
             if (SandboxPath.Value is not { } path) return;
 
             var firstSpace = proj.Command.IndexOf(' ');
@@ -211,7 +213,7 @@ public class MainViewModel : IDisposable
         {
             logger.Information("Command: " + nameof(InitRepo));
 
-            var p = Project.Value;
+            var p = ProjectSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
 
@@ -376,7 +378,7 @@ public class MainViewModel : IDisposable
     private void TearDown(TeardownOptions options)
     {
         if (options.HasFlag(TeardownOptions.BareGitRepo)
-            && Project.Value?.GitRepo?.RepoPath is { } repoPath)
+            && ProjectSelected.Value?.GitRepo?.RepoPath is { } repoPath)
         {
             var hack = Path.Combine(AppData.Default.UserAppDataDir.FullName, repoPath);
             try
@@ -419,14 +421,15 @@ public class MainViewModel : IDisposable
     public BindableReactiveProperty<string?> SandboxPath { get; }
     public BindableReactiveProperty<string> ProcessOutput { get; }
 
+    public BindableReactiveProperty<Project?> ProjectSelected { get; }
+    public INotifyCollectionChangedSynchronizedViewList<Project> ProjectOptions { get; }
+
     public BindableReactiveProperty<string?> GitBranchSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitBranchOptions { get; }
 
     public BindableReactiveProperty<string?> GitCommitSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitCommitOptions { get; }
 
-    public ReactiveCommand<Unit> ProjectLoadCommand { get; }
-    public ReactiveCommand<Unit> ProjectUnloadCommand { get; }
     public ReactiveCommand<Unit> ProjectUpdateCommand { get; }
     public ReactiveCommand<Unit> ProjectImportCommand { get; }
 
@@ -440,7 +443,6 @@ public class MainViewModel : IDisposable
     public ReactiveCommand<Unit> DeleteRepo { get; }
 
 
-    public BindableReactiveProperty<Project?> Project { get; }
 
     public BindableReactiveProperty<decimal> TintOpacity { get; }
     public BindableReactiveProperty<decimal> MaterialOpacity { get; }
