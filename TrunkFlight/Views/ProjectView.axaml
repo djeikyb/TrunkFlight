@@ -160,6 +160,12 @@
            Content="Output from running app:"
            DockPanel.Dock="Top" />
     <TextBox IsReadOnly="True" Text="{Binding ProcessOutput.Value}">
+      <TextBox.Styles>
+        <Style
+          Selector="TextBox[AcceptsReturn=False] /template/ TextPresenter#PART_TextPresenter">
+          <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+      </TextBox.Styles>
       <ScrollViewer.AllowAutoHide>False</ScrollViewer.AllowAutoHide>
       <ScrollViewer.VerticalScrollBarVisibility>Visible</ScrollViewer.VerticalScrollBarVisibility>
     </TextBox>
