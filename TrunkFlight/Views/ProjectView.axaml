@@ -30,7 +30,7 @@
       </Style>
       <Setter Property="v:SetterBehavior.ColumnDefinitions">
         <ColumnDefinitions>
-          <ColumnDefinition Width="100"
+          <ColumnDefinition Width="69"
                             SharedSizeGroup="label" />
           <ColumnDefinition Width="*"
                             SharedSizeGroup="value" />
@@ -47,7 +47,40 @@
 
     <StackPanel HorizontalAlignment="Stretch" Margin="12" Spacing="3"
                 DockPanel.Dock="Top">
-      <TextBlock Text="Start here." />
+
+      <Grid Classes="row"
+            DockPanel.Dock="Top"
+            DataContext="{Binding Project.Value}">
+        <Label Target="ProjectName"
+               Content="Project:" />
+        <SelectableTextBlock Name="ProjectName"
+                             TextWrapping="Wrap"
+                             Grid.Column="1"
+                             Text="{Binding Name}" />
+      </Grid>
+
+      <Grid Classes="row"
+            DockPanel.Dock="Top"
+            DataContext="{Binding Project.Value}">
+        <Label Target="Command"
+               Content="Command:" />
+        <SelectableTextBlock Name="Command"
+                             TextWrapping="Wrap"
+                             Grid.Column="1"
+                             Text="{Binding Command}" />
+      </Grid>
+
+      <Grid Classes="row"
+            DockPanel.Dock="Top">
+        <Label Target="WorkingDir"
+               Content="Sandbox:" />
+        <SelectableTextBlock Name="WorkingDir"
+                             TextWrapping="Wrap"
+                             Grid.Column="1"
+                             Text="{Binding SandboxPath.Value}" />
+      </Grid>
+
+      <!-- <TextBlock Text="Start here." /> -->
       <Button Content="Load project (cheat)"
               HorizontalAlignment="Stretch"
               Command="{Binding ProjectLoadCommand}" />
@@ -122,40 +155,6 @@
     <!--   <Label Content="asdf" /> -->
     <!--   <TextBlock Text="{Binding Name}" /> -->
     <!-- </StackPanel> -->
-
-    <Grid Classes="row"
-          DockPanel.Dock="Top"
-          DataContext="{Binding Project.Value}">
-      <Label Target="ProjectName"
-             Content="Project:" />
-      <SelectableTextBlock Name="ProjectName"
-                           TextWrapping="Wrap"
-                           Grid.Column="1"
-                           Text="{Binding Name}" />
-    </Grid>
-
-    <Grid Classes="row"
-          DockPanel.Dock="Top"
-          DataContext="{Binding Project.Value}">
-      <Label Target="Command"
-             Content="Command:" />
-      <SelectableTextBlock Name="Command"
-                           TextWrapping="Wrap"
-                           Grid.Column="1"
-                           Text="{Binding Command}" />
-    </Grid>
-
-    <Grid Classes="row"
-          DockPanel.Dock="Top">
-      <Label Target="WorkingDir"
-             Content="Sandbox:" />
-      <SelectableTextBlock Name="WorkingDir"
-                           TextWrapping="Wrap"
-                           Grid.Column="1"
-                           Text="{Binding SandboxPath.Value}" />
-    </Grid>
-
-    <Rectangle DockPanel.Dock="Top" StrokeThickness="2" Stroke="PaleVioletRed" Margin="9 6" />
 
     <Label Target="WorkingDir"
            Content="Output from running app:"
