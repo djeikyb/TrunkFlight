@@ -28,12 +28,12 @@
     <!--            DockPanel.Dock="Left" /> -->
 
     <Rectangle HorizontalAlignment="Stretch"
-               Height="0.5"
+               Height="0.1"
                Fill="{DynamicResource TitleBarSeparatorColorTop}"
                Margin="0 0 0 0"
                DockPanel.Dock="Top" />
     <Rectangle HorizontalAlignment="Stretch"
-               Height="0.5"
+               Height="0.1"
                Fill="{DynamicResource TitleBarSeparatorColorBottom}"
                Margin="0 0 0 0"
                DockPanel.Dock="Top" />

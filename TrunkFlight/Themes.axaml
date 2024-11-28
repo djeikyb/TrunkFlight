@@ -8,8 +8,8 @@
 
       <!-- <Color x:Key="TitleBarSeparatorColorTop">rgb(210, 213, 213)</Color> -->
       <!-- <Color x:Key="TitleBarSeparatorColorBottom">rgb(200, 202, 202)</Color> -->
-      <Color x:Key="TitleBarSeparatorColorTop">CornflowerBlue</Color>
-      <Color x:Key="TitleBarSeparatorColorBottom">Violet</Color>
+      <Color x:Key="TitleBarSeparatorColorBottom">CornflowerBlue</Color>
+      <Color x:Key="TitleBarSeparatorColorTop">Violet</Color>
 
       <Color x:Key="TableRow_Foreground">rgb(40, 40, 40)</Color>
       <Color x:Key="TableRow_Background-Primary">#ffffff</Color>
