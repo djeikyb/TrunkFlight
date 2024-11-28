@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibGit2Sharp;
@@ -66,8 +65,32 @@ public class Git(AppData appData, GitRepo gr)
         if (!Path.IsPathFullyQualified(absolutePathToBareGitRepo)) return []; // HRM error?
         using var repo = new Repository(absolutePathToBareGitRepo);
         return repo.Branches
-            .Where(x => x.IsRemote)
-            .Where(x => x.RemoteName.Equals("origin", StringComparison.InvariantCultureIgnoreCase))
+            .Where(x =>
+                // Branch::RemoteName eats an exception
+                // This isn't exactly it; it's from early on in the
+                // debugger. You can actually see it with Rider's
+                // debugger, even though it doesn't bubble up to this
+                // frame of the stack. Also, somehow it ends up doing
+                // the right thing WHEN using the dotnet runtime. But
+                // under nativeaot, RemoteName doesn't recover from the
+                // internal exception, and returns null instead of the
+                // branch name.
+                //
+                // So ignore all the object orientation and use the
+                // CanonicalName property which THANK THE GODS is the
+                // one prop that isn't lazy or proxied to several other
+                // libgit2 calls.
+                //
+                //     at LibGit2Sharp.Core.Ensure.HandleError(Int32 result) in /_/LibGit2Sharp/Core/Ensure.cs:line 154
+                //     at LibGit2Sharp.Core.Ensure.ZeroResult(Int32 result) in /_/LibGit2Sharp/Core/Ensure.cs:line 172
+                //     at LibGit2Sharp.Core.Proxy.git_branch_iterator(Repository repo, GitBranchType branchType)+MoveNext() in /_/LibGit2Sharp/Core/Proxy.cs:line 135
+                //     at System.Collections.Generic.List`1..ctor(IEnumerable`1 collection)
+                //     at System.Linq.Enumerable.ToList[TSource](IEnumerable`1 source)
+                //     at LibGit2Sharp.BranchCollection.GetEnumerator() in /_/LibGit2Sharp/BranchCollection.cs:line 94
+                //     at System.Collections.Generic.LargeArrayBuilder`1.AddRange(IEnumerable`1 items)
+                //     at System.Collections.Generic.EnumerableHelpers.ToArray[T](IEnumerable`1 source)
+                //     at System.Linq.SystemCore_EnumerableDebugView`1.get_Items()
+                x.CanonicalName.StartsWith("refs/remotes/origin/", StringComparison.InvariantCultureIgnoreCase))
             .OrderByDescending(x => x.Tip.Committer.When)
             .Select(x => x.FriendlyName[7..])
             .Where(x => !"HEAD".Equals(x))
