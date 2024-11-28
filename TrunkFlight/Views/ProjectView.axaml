@@ -53,6 +53,40 @@
       <Button Content="Unload project"
               HorizontalAlignment="Stretch"
               Command="{Binding ProjectUnloadCommand}" />
+
+      <Grid
+        RowDefinitions="Auto *"
+        ColumnDefinitions="150 *"
+        Height="100"
+        DockPanel.Dock="Top">
+
+        <Label
+          Grid.Row="0"
+          Grid.Column="0"
+          Target="BranchList"
+          Content="Branches:" />
+        <ListBox
+          Grid.Row="1"
+          Grid.Column="0"
+          Name="BranchList"
+          ItemsSource="{Binding GitBranchOptions}"
+          SelectedItem="{Binding GitBranchSelected.Value}">
+        </ListBox>
+
+        <Label
+          Grid.Row="0"
+          Grid.Column="1"
+          Target="CommitList"
+          Content="Commits:" />
+        <ListBox
+          Grid.Row="1"
+          Grid.Column="1"
+          Name="CommitList"
+          ItemsSource="{Binding GitCommitOptions}"
+          SelectedItem="{Binding GitCommitSelected.Value}">
+        </ListBox>
+      </Grid>
+
       <TextBlock Text="Sandbox actions are cheap and safe." />
       <Button Content="Sandbox: Create"
               HorizontalAlignment="Stretch"
@@ -82,39 +116,6 @@
     <!--   <Label Content="asdf" /> -->
     <!--   <TextBlock Text="{Binding Name}" /> -->
     <!-- </StackPanel> -->
-
-    <Grid
-      RowDefinitions="Auto *"
-      ColumnDefinitions="150 *"
-      Height="100"
-      DockPanel.Dock="Top">
-
-      <Label
-        Grid.Row="0"
-        Grid.Column="0"
-        Target="BranchList"
-        Content="Branches:" />
-      <ListBox
-        Grid.Row="1"
-        Grid.Column="0"
-        Name="BranchList"
-        ItemsSource="{Binding GitBranchOptions}"
-        SelectedItem="{Binding GitBranchSelected.Value}">
-      </ListBox>
-
-      <Label
-        Grid.Row="0"
-        Grid.Column="1"
-        Target="CommitList"
-        Content="Commits:" />
-      <ListBox
-        Grid.Row="1"
-        Grid.Column="1"
-        Name="CommitList"
-        ItemsSource="{Binding GitCommitOptions}"
-        SelectedItem="{Binding GitCommitSelected.Value}">
-      </ListBox>
-    </Grid>
 
     <Grid Classes="row"
           DockPanel.Dock="Top"
