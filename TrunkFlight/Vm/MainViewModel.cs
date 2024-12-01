@@ -46,9 +46,18 @@ public class MainViewModel : IDisposable
 
         logger.Information(AppData.Default.UserAppDataDir.FullName);
 
-        var projects = new ObservableList<Project>(db.Projects());
-        ProjectOptions = projects.ToNotifyCollectionChangedSlim();
-        ProjectSelected = new BindableReactiveProperty<Project?>().AddTo(ref _disposable);
+        var repos = new ObservableList<GitRepo>(db
+            .RepoCommands()
+            .Select(x => x.GitRepo)
+            .Where(x => x is not null)
+            .Cast<GitRepo>()
+            .ToHashSet());
+        RepoOptions = repos.ToNotifyCollectionChangedSlim();
+        RepoSelected = new BindableReactiveProperty<GitRepo?>(repos.FirstOrDefault()).AddTo(ref _disposable);
+
+        var commands = new ObservableList<RepoCommand>(RepoSelected.Value?.RepoCommands ?? []);
+        CommandOptions = commands.ToNotifyCollectionChangedSlim();
+        CommandSelected = new BindableReactiveProperty<RepoCommand?>(commands.FirstOrDefault()).AddTo(ref _disposable);
 
         ProcessOutput = new BindableReactiveProperty<string>();
         SandboxPath = new BindableReactiveProperty<string?>();
@@ -60,6 +69,36 @@ public class MainViewModel : IDisposable
         var commits = new ObservableList<string>();
         GitCommitOptions = commits.ToNotifyCollectionChangedSlim();
         GitCommitSelected = new BindableReactiveProperty<string?>();
+
+        RepoSelected.Subscribe(repo =>
+        {
+            if (repo is null)
+            {
+                CommandSelected.Value = null;
+                commands.Clear();
+                return;
+            }
+
+            var rcSelected = CommandSelected.Value;
+
+            commands.Clear();
+            commands.AddRange(repo.RepoCommands ??
+                              throw new Exception(
+                                  $"Null {nameof(repo.RepoCommands)} for {repo.GetType()} {repo.GitRepoId}"));
+
+            if (rcSelected is not null
+                && commands.FirstOrDefault(x => x.Command.Equals(rcSelected.Command)) is { } found)
+            {
+                // Might be a different command record, but if the command text
+                // itself is identical, feels good to create the illusion that
+                // the selected command record did not change.
+                CommandSelected.Value = found;
+            }
+
+            var git = new Git(AppData.Default, repo);
+            UpdateBranchOptions(branches, git);
+            UpdateCommitOptions(commits, git);
+        });
 
         ProjectImportCommand = new ReactiveCommand();
         ProjectImportCommand.SubscribeExclusiveAwait(async (_, ct) =>
@@ -82,32 +121,38 @@ public class MainViewModel : IDisposable
                     // to make sure our in-memory list has everything from the
                     // db. then again, why not? but ask.. how would the db have
                     // more than a single new record?
-                    
-                    var projectsFromDb = db.Projects();
-                    var notLocally = projectsFromDb.Except(projects);
-                    var notInDb = projects.Except(projectsFromDb);
-                    projects.AddRange(notLocally);
-                    foreach (var nid in notInDb)
+
+                    var commandsFromDb = db.RepoCommands();
+
+                    var reposFromDb = commandsFromDb
+                        .Select(x => x.GitRepo)
+                        .Where(x => x is not null)
+                        .Cast<GitRepo>()
+                        .ToHashSet();
+                    var reposNotLocally = reposFromDb.Except(repos);
+                    var reposNotInDb = repos.Except(reposFromDb);
+                    repos.AddRange(reposNotLocally);
+                    foreach (var r in reposNotInDb)
                     {
-                        projects.Remove(nid);
+                        repos.Remove(r);
+                    }
+
+                    var commandsNotLocally = commandsFromDb.Except(commands);
+                    var commandsNotInDb = commands.Except(commandsFromDb);
+                    commands.AddRange(commandsNotLocally);
+                    foreach (var nid in commandsNotInDb)
+                    {
+                        commands.Remove(nid);
                     }
                 }
             });
-        });
-
-        ProjectSelected.Subscribe(p =>
-        {
-            if (p?.GitRepo is null) return;
-            var git = new Git(AppData.Default, p.GitRepo);
-            UpdateBranchOptions(branches, git);
-            UpdateCommitOptions(commits, git);
         });
 
         ProjectUpdateCommand = new ReactiveCommand(_ =>
         {
             logger.Information("Command: " + nameof(ProjectUpdateCommand));
 
-            var p = ProjectSelected.Value;
+            var p = CommandSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
 
@@ -121,7 +166,7 @@ public class MainViewModel : IDisposable
             {
                 if (branchName is null) return;
 
-                var p = ProjectSelected.Value;
+                var p = CommandSelected.Value;
                 if (p is null) return;
                 if (p.GitRepo is null) return;
 
@@ -134,7 +179,7 @@ public class MainViewModel : IDisposable
         {
             logger.Information("Command: " + nameof(SandboxCreateCommand));
 
-            var p = ProjectSelected.Value;
+            var p = CommandSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
             if (GitCommitSelected.Value is not { } commit) return;
@@ -157,7 +202,7 @@ public class MainViewModel : IDisposable
             logger.Information("Command: " + nameof(SandboxDestroyCommand));
             if (SandboxPath.Value is not { } path) return;
 
-            var p = ProjectSelected.Value;
+            var p = CommandSelected.Value;
             if (p is null) return;
             if (p.GitRepo is null) return;
 
@@ -177,7 +222,7 @@ public class MainViewModel : IDisposable
         {
             logger.Information("Command: " + nameof(SandboxRunAppCommand));
 
-            if (ProjectSelected.Value is not { } proj) return;
+            if (CommandSelected.Value is not { } proj) return;
             if (SandboxPath.Value is not { } path) return;
 
             var firstSpace = proj.Command.IndexOf(' ');
@@ -213,15 +258,14 @@ public class MainViewModel : IDisposable
         {
             logger.Information("Command: " + nameof(InitRepo));
 
-            var p = ProjectSelected.Value;
-            if (p is null) return;
-            if (p.GitRepo is null) return;
+            var repo = RepoSelected.Value;
+            if (repo is null) return;
 
             await Task.Run(() =>
             {
                 try
                 {
-                    var git = new Git(AppData.Default, p.GitRepo);
+                    var git = new Git(AppData.Default, repo);
                     git.Clone();
                 }
                 catch (TaskCanceledException)
@@ -338,7 +382,6 @@ public class MainViewModel : IDisposable
                 if (!d.ContainsKey("git.pass")) throw new Exception("Invalid project data: missing key: git.pass");
             }
 
-            if (!d.ContainsKey("project.name")) throw new Exception("Invalid project data: missing key: project.name");
             if (!d.ContainsKey("project.command"))
                 throw new Exception("Invalid project data: missing key: project.command");
         }
@@ -359,10 +402,9 @@ public class MainViewModel : IDisposable
             gitRepo.Password = pass;
         db.Save(gitRepo);
 
-        var proj = new Project
+        var proj = new RepoCommand
         {
             GitRepoId = gitRepo.GitRepoId,
-            Name = d["project.name"],
             Command = d["project.command"],
         };
         db.Save(proj);
@@ -378,7 +420,7 @@ public class MainViewModel : IDisposable
     private void TearDown(TeardownOptions options)
     {
         if (options.HasFlag(TeardownOptions.BareGitRepo)
-            && ProjectSelected.Value?.GitRepo?.RepoPath is { } repoPath)
+            && CommandSelected.Value?.GitRepo?.RepoPath is { } repoPath)
         {
             var hack = Path.Combine(AppData.Default.UserAppDataDir.FullName, repoPath);
             try
@@ -421,8 +463,11 @@ public class MainViewModel : IDisposable
     public BindableReactiveProperty<string?> SandboxPath { get; }
     public BindableReactiveProperty<string> ProcessOutput { get; }
 
-    public BindableReactiveProperty<Project?> ProjectSelected { get; }
-    public INotifyCollectionChangedSynchronizedViewList<Project> ProjectOptions { get; }
+    public BindableReactiveProperty<GitRepo?> RepoSelected { get; }
+    public INotifyCollectionChangedSynchronizedViewList<GitRepo> RepoOptions { get; }
+
+    public BindableReactiveProperty<RepoCommand?> CommandSelected { get; }
+    public INotifyCollectionChangedSynchronizedViewList<RepoCommand> CommandOptions { get; }
 
     public BindableReactiveProperty<string?> GitBranchSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitBranchOptions { get; }
@@ -441,7 +486,6 @@ public class MainViewModel : IDisposable
 
     public ReactiveCommand<Unit> InitRepo { get; }
     public ReactiveCommand<Unit> DeleteRepo { get; }
-
 
 
     public BindableReactiveProperty<decimal> TintOpacity { get; }

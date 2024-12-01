@@ -32,13 +32,12 @@ public class Program
         };
         db.Save(gr);
 
-        var proj = new Project
+        var rc = new RepoCommand
         {
-            Name = "changeme",
             GitRepoId = gr.GitRepoId,
             Command = "changeme",
         };
-        db.Save(proj);
+        db.Save(rc);
 
         var git = new Git(AppData.Default, gr);
         git.Fetch();
