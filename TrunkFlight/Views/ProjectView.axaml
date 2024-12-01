@@ -50,18 +50,7 @@
 
       <Grid Classes="row"
             DockPanel.Dock="Top"
-            DataContext="{Binding ProjectSelected.Value}">
-        <Label Target="ProjectName"
-               Content="Project:" />
-        <SelectableTextBlock Name="ProjectName"
-                             TextWrapping="Wrap"
-                             Grid.Column="1"
-                             Text="{Binding Name}" />
-      </Grid>
-
-      <Grid Classes="row"
-            DockPanel.Dock="Top"
-            DataContext="{Binding ProjectSelected.Value}">
+            DataContext="{Binding CommandSelected.Value}">
         <Label Target="Command"
                Content="Command:" />
         <SelectableTextBlock Name="Command"
@@ -80,25 +69,55 @@
                              Text="{Binding SandboxPath.Value}" />
       </Grid>
 
-      <Label
-        Target="ProjectList"
-        Content="Projects:" />
-      <ListBox
-        Name="ProjectList"
-        MinHeight="50"
-        SelectedItem="{Binding ProjectSelected.Value}"
-        ItemsSource="{Binding ProjectOptions}">
-        <ListBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock>
-              <Run Text="{Binding Name}" />
-              <Run Text=":" />
-              <Run Text="{Binding Command}" />
-            </TextBlock>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+      <Grid
+        RowDefinitions="Auto *"
+        ColumnDefinitions="Auto *"
+        Height="100"
+        DockPanel.Dock="Top">
 
+        <Label
+          Grid.Row="0"
+          Grid.Column="0"
+          Target="RepoList"
+          Content="Repos:" />
+        <ListBox
+          Grid.Row="1"
+          Grid.Column="0"
+          Name="RepoList"
+          MinHeight="50"
+          SelectedItem="{Binding RepoSelected.Value}"
+          ItemsSource="{Binding RepoOptions}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock>
+                <Run Text="{Binding GitUrl}" />
+                <!-- <Run Text=":" /> -->
+                <!-- <Run Text="{Binding Repo}" /> -->
+              </TextBlock>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Label
+          Grid.Row="0"
+          Grid.Column="1"
+          Target="CommandList"
+          Content="Commands:" />
+        <ListBox
+          Grid.Row="1"
+          Grid.Column="1"
+          Name="CommandList"
+          MinHeight="50"
+          SelectedItem="{Binding CommandSelected.Value}"
+          ItemsSource="{Binding CommandOptions}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Command}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+      </Grid>
       <Grid
         RowDefinitions="Auto *"
         ColumnDefinitions="150 *"
@@ -134,6 +153,9 @@
         </ListBox>
       </Grid>
 
+      <Button Content="Fetch latest commits"
+              HorizontalAlignment="Stretch"
+              Command="{Binding ProjectUpdateCommand}" />
       <TextBlock Text="Sandbox actions are cheap and safe." />
       <Button Content="Sandbox: Create"
               HorizontalAlignment="Stretch"

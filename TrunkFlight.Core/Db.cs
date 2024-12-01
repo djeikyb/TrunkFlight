@@ -2,38 +2,38 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 
 namespace TrunkFlight.Core;
 
-public class Project
+public class RepoCommand
 {
-    public int ProjectId { get; set; }
+    public int RepoCommandId { get; set; }
 
     public required int GitRepoId { get; set; }
     public GitRepo? GitRepo { get; set; }
-
-    public required string Name { get; init; }
     public required string Command { get; set; }
 
-    protected bool Equals(Project other) => ProjectId == other.ProjectId;
+    protected bool Equals(RepoCommand other) => RepoCommandId == other.RepoCommandId;
 
     public override bool Equals(object? obj)
     {
         if (obj is null) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((Project)obj);
+        return Equals((RepoCommand)obj);
     }
 
-    public override int GetHashCode() => ProjectId;
+    public override int GetHashCode() => RepoCommandId;
 }
 
 public class GitRepo
 {
     public int GitRepoId { get; set; }
+
+    public List<RepoCommand>? RepoCommands { get; set; }
 
     /// relative to <see cref="AppData.UserAppDataDir"/>
     public required string RepoPath { get; init; }
@@ -41,6 +41,24 @@ public class GitRepo
     public required string GitUrl { get; init; }
     public string? Username { get; set; }
     public string? Password { get; set; }
+
+    protected bool Equals(GitRepo other)
+    {
+        return GitRepoId == other.GitRepoId;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((GitRepo)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return GitRepoId;
+    }
 }
 
 public class Db : IDisposable
@@ -65,9 +83,14 @@ public class Db : IDisposable
 
     public bool EnsureDeleted()
     {
-        var file = new SqliteConnectionStringBuilder(_connection.ConnectionString).DataSource;
-        Log.ForContext<Db>().Warning($"Failed to delete database: {file}");
-        return false;
+        using var drop = _connection.CreateCommand();
+        drop.CommandText = """
+                           drop table if exists projects;
+                           drop table if exists git_repos;
+                           drop table if exists repo_command;
+                           """;
+        drop.ExecuteNonQuery();
+        return true;
     }
 
     public bool EnsureCreated()
@@ -85,99 +108,103 @@ public class Db : IDisposable
                                  password    TEXT
                              );
 
-                             create table if not exists projects
+                             create table if not exists repo_command
                              (
-                                 project_id  INTEGER not null
-                                     constraint pk_projects
+                                 repo_command_id  INTEGER not null
+                                     constraint pk_repo_command
                                          primary key autoincrement,
                                  git_repo_id INTEGER not null
-                                     constraint fk_projects_git_repos_git_repo_id
+                                     constraint fk_repo_command_git_repos_git_repo_id
                                          references git_repos
                                          on delete cascade,
-                                 name        TEXT    not null,
                                  command     TEXT    not null
                              );
 
                              create unique index if not exists ak_git_url
                                  on git_repos (git_url);
 
-                             create unique index if not exists ak_git_repo_id_name
-                                 on projects (git_repo_id, name);
+                             create index if not exists ix_repo_command_git_repo_id
+                                 on repo_command (git_repo_id);
 
-                             create index if not exists ix_projects_git_repo_id
-                                 on projects (git_repo_id);
+                             create unique index if not exists ak_git_repo_id_command
+                                 on repo_command (git_repo_id, command);
                              """;
 
         create.ExecuteNonQuery();
         return false;
     }
 
-    public Project? LatestProject()
+    public RepoCommand? LatestRepoCommand()
     {
         using var select = _connection.CreateCommand();
         select.CommandText = """
-                             select p.*, gr.*
-                             from projects p
-                             join git_repos gr on gr.git_repo_id = p.git_repo_id
-                             order by p.project_id desc 
+                             select rc.*, gr.*
+                             from repo_command rc
+                             join git_repos gr on gr.git_repo_id = rc.git_repo_id
+                             order by rc.repo_command_id desc 
                              limit 1
                              """;
 
         using var reader = select.ExecuteReader(CommandBehavior.SingleResult | CommandBehavior.SingleRow);
         if (!reader.Read()) return null;
-        var project = new Project
+        var rc = new RepoCommand
         {
-            ProjectId = reader.GetInt32(0),
+            RepoCommandId = reader.GetInt32(0),
             GitRepoId = reader.GetInt32(1),
-            Name = reader.GetString(2),
-            Command = reader.GetString(3),
+            Command = reader.GetString(2),
             GitRepo = new GitRepo
             {
-                GitRepoId = reader.GetInt32(4),
-                RepoPath = reader.GetString(5),
-                GitUrl = reader.GetString(6),
-                Username = reader.GetString(7),
-                Password = reader.GetString(8),
+                GitRepoId = reader.GetInt32(3),
+                RepoPath = reader.GetString(4),
+                GitUrl = reader.GetString(5),
+                Username = reader.GetString(6),
+                Password = reader.GetString(7),
             },
         };
 
         // don't inline, be kind to debuggers
-        return project;
+        return rc;
     }
 
-    public List<Project> Projects()
+    public List<RepoCommand> RepoCommands()
     {
         using var select = _connection.CreateCommand();
         select.CommandText = """
-                             select p.*, gr.*
-                             from projects p
-                             join git_repos gr on gr.git_repo_id = p.git_repo_id
-                             order by p.project_id desc 
+                             select rc.*, gr.*
+                             from repo_command rc
+                             join git_repos gr on gr.git_repo_id = rc.git_repo_id
+                             order by rc.repo_command_id desc 
                              """;
 
         using var reader = select.ExecuteReader(CommandBehavior.Default);
-        List<Project> projects = [];
+        List<RepoCommand> rcs = [];
         while (reader.Read())
         {
-            var project = new Project
+            var rc = new RepoCommand
             {
-                ProjectId = reader.GetInt32(0),
+                RepoCommandId = reader.GetInt32(0),
                 GitRepoId = reader.GetInt32(1),
-                Name = reader.GetString(2),
-                Command = reader.GetString(3),
+                Command = reader.GetString(2),
                 GitRepo = new GitRepo
                 {
-                    GitRepoId = reader.GetInt32(4),
-                    RepoPath = reader.GetString(5),
-                    GitUrl = reader.GetString(6),
-                    Username = reader.GetString(7),
-                    Password = reader.GetString(8),
+                    GitRepoId = reader.GetInt32(3),
+                    RepoPath = reader.GetString(4),
+                    GitUrl = reader.GetString(5),
+                    Username = reader.IsDBNull(6) ? null : reader.GetString(6),
+                    Password = reader.IsDBNull(7) ? null : reader.GetString(7),
                 },
             };
-            projects.Add(project);
+            rcs.Add(rc);
         }
 
-        return projects;
+        var lookup = rcs.ToLookup(x => x.GitRepoId, x => x);
+        foreach (var lk in lookup)
+        {
+            var repo = lk.First().GitRepo;
+            repo.RepoCommands = lk.ToList();
+        }
+
+        return rcs;
     }
 
     public void Save(GitRepo gr)
@@ -196,8 +223,8 @@ public class Db : IDisposable
                              """;
         upsert.Parameters.AddWithValue("$repo_path", gr.RepoPath);
         upsert.Parameters.AddWithValue("$git_url", gr.GitUrl);
-        upsert.Parameters.AddWithValue("$username", gr.Username);
-        upsert.Parameters.AddWithValue("$password", gr.Password);
+        upsert.Parameters.AddWithValue("$username", (object?)gr.Username ?? DBNull.Value);
+        upsert.Parameters.AddWithValue("$password", (object?)gr.Password ?? DBNull.Value);
         using (var reader = upsert.ExecuteReader(CommandBehavior.SingleResult | CommandBehavior.SingleRow))
         {
             if (reader.Read()) gr.GitRepoId = reader.GetInt32(0);
@@ -207,27 +234,25 @@ public class Db : IDisposable
         Debug.Assert(count == 1, "Should've inserted one row.");
     }
 
-    public void Save(Project p)
+    public void Save(RepoCommand rc)
     {
-        using var upsertProj = _connection.CreateCommand();
-        upsertProj.CommandText = """
-                                 insert into projects
-                                 (git_repo_id, name, command)
-                                 values
-                                 ($git_repo_id, $name, $command)
-                                 on conflict(git_repo_id, name) do update set
-                                     command=excluded.command
-                                 returning project_id
-                                 """;
-        upsertProj.Parameters.AddWithValue("$git_repo_id", p.GitRepoId);
-        upsertProj.Parameters.AddWithValue("$name", p.Name);
-        upsertProj.Parameters.AddWithValue("$command", p.Command);
-        using (var reader = upsertProj.ExecuteReader(CommandBehavior.SingleResult | CommandBehavior.SingleRow))
-        {
-            if (reader.Read()) p.ProjectId = reader.GetInt32(0);
-        }
-
-        var count = upsertProj.ExecuteNonQuery();
-        Debug.Assert(count == 1, "Should've inserted one row.");
+        using var upsertRc = _connection.CreateCommand();
+        upsertRc.CommandText = """
+                               insert into repo_command
+                               (git_repo_id, command)
+                               values
+                               ($git_repo_id, $command)
+                               on conflict(git_repo_id, command) do nothing 
+                               returning repo_command_id
+                               """;
+        upsertRc.Parameters.AddWithValue("$git_repo_id", rc.GitRepoId);
+        upsertRc.Parameters.AddWithValue("$command", rc.Command);
+        using var reader = upsertRc.ExecuteReader(CommandBehavior.SingleResult | CommandBehavior.SingleRow);
+        if (reader.Read()) rc.RepoCommandId = reader.GetInt32(0);
+        reader.Close();
+        // RecordsAffected may be unreliable until reader is closed
+        // https://learn.microsoft.com/en-us/dotnet/api/system.data.sqlclient.sqldatareader?view=net-8.0-pp&redirectedfrom=MSDN
+        var count = reader.RecordsAffected;
+        Debug.Assert(count == 1, $"Should've inserted one row, but was {count}.");
     }
 }
