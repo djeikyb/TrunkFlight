@@ -278,6 +278,47 @@ public class MainViewModel : IDisposable
         BasicRunCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
             logger.Information("Command: " + nameof(BasicRunCommand));
+
+            try
+            {
+                SandboxDestroyCommand.Execute(Unit.Default);
+            }
+            catch(Exception e)
+            {
+                logger.Information(e, "Failed to remove previous sandbox tmp dir.");
+            }
+
+            SandboxCreateCommand.Execute(Unit.Default);
+
+            if (CommandSelected.Value is not { } proj) return;
+            if (SandboxPath.Value is not { } path) return;
+
+            var firstSpace = proj.Command.IndexOf(' ');
+
+            Process proc = new Process();
+            proc.AddTo(ref _disposable);
+
+            // set up the command
+            proc.StartInfo.WorkingDirectory = path;
+            proc.StartInfo.FileName = firstSpace > 0
+                ? proj.Command[..firstSpace]
+                : proj.Command;
+            if (firstSpace > 0) proc.StartInfo.Arguments = proj.Command[firstSpace..];
+
+            // get ready to capture stdout
+            proc.StartInfo.RedirectStandardOutput = true;
+            Observable.FromEvent<DataReceivedEventHandler, DataReceivedEventArgs>(
+                    h => (sender, e) => h(e),
+                    e => proc.OutputDataReceived += e,
+                    e => proc.OutputDataReceived -= e)
+                .Subscribe(args =>
+                {
+                    ProcessOutput.Value += args.Data + Environment.NewLine;
+                });
+
+            proc.Start();
+            proc.BeginOutputReadLine();
+            await proc.WaitForExitAsync(ct);
         });
 
         InitRepo = new ReactiveCommand();
