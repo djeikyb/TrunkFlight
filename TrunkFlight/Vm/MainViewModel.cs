@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Input.Platform;
 using Microsoft.Data.Sqlite;
@@ -135,18 +137,50 @@ public class MainViewModel : IDisposable
             });
         });
 
-        ProjectUpdateCommand = new ReactiveCommand(_ =>
+        ProjectUpdateCommand = new ReactiveCommand();
+        ProjectUpdateCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
             logger.Information("Command: " + nameof(ProjectUpdateCommand));
 
-            var p = CommandSelected.Value;
-            if (p is null) return;
-            if (p.GitRepo is null) return;
+            var gr = RepoSelected.Value;
+            if (gr is null) return;
 
-            var git = new Git(AppData.Default, p.GitRepo);
-            git.Fetch();
-            UpdateBranchOptions(branches, git);
-            UpdateCommitOptions(commits, git);
+            var feelings = Task.Delay(500);
+            var work = Task.Run(async () =>
+            {
+                bool connected;
+                var uri = new Uri(gr.GitUrl);
+                if (uri.Scheme.StartsWith("http"))
+                {
+                    CancellationTokenSource cts = new(1000);
+                    using var tcp = new TcpClient();
+                    try
+                    {
+                        await tcp.ConnectAsync(uri.Host, uri.Port, cts.Token);
+                        connected = true;
+                    }
+                    catch (Exception)
+                    {
+                        connected = false;
+                    }
+                }
+                else
+                {
+                    connected = true;
+                }
+
+                if (!connected)
+                {
+                    logger.Information("Basic connection failed, aborting git fetch.");
+                    return;
+                }
+
+                var git = new Git(AppData.Default, gr);
+                git.Fetch();
+                UpdateBranchOptions(branches, git);
+                UpdateCommitOptions(commits, git);
+            });
+            await Task.WhenAll(work, feelings);
         });
 
         GitBranchSelected.Subscribe(branchName =>
