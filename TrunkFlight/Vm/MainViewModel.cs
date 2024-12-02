@@ -320,7 +320,7 @@ public class MainViewModel : IDisposable
 
             // get ready to capture stdout
             proc.StartInfo.RedirectStandardOutput = true;
-            Observable.FromEvent<DataReceivedEventHandler, DataReceivedEventArgs>(
+            using var rstdout = Observable.FromEvent<DataReceivedEventHandler, DataReceivedEventArgs>(
                     h => (sender, e) => h(e),
                     e => proc.OutputDataReceived += e,
                     e => proc.OutputDataReceived -= e)
@@ -329,7 +329,19 @@ public class MainViewModel : IDisposable
                     ProcessOutput.Value += args.Data + Environment.NewLine;
                 });
 
+            // get ready to capture stderr
+            proc.StartInfo.RedirectStandardError = true;
+            using var rstderr = Observable.FromEvent<DataReceivedEventHandler, DataReceivedEventArgs>(
+                    h => (sender, e) => h(e),
+                    e => proc.ErrorDataReceived += e,
+                    e => proc.ErrorDataReceived -= e)
+                .Subscribe(args =>
+                {
+                    ProcessOutput.Value += args.Data + Environment.NewLine;
+                });
+
             proc.Start();
+            proc.BeginErrorReadLine();
             proc.BeginOutputReadLine();
             await proc.WaitForExitAsync(ct);
         });
