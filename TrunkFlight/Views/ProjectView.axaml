@@ -45,29 +45,8 @@
 
   <DockPanel>
 
-    <StackPanel HorizontalAlignment="Stretch" Margin="12" Spacing="3"
+    <StackPanel HorizontalAlignment="Stretch" Margin="12 6" Spacing="3"
                 DockPanel.Dock="Top">
-
-      <Grid Classes="row"
-            DockPanel.Dock="Top"
-            DataContext="{Binding CommandSelected.Value}">
-        <Label Target="Command"
-               Content="Command:" />
-        <SelectableTextBlock Name="Command"
-                             TextWrapping="Wrap"
-                             Grid.Column="1"
-                             Text="{Binding Command}" />
-      </Grid>
-
-      <Grid Classes="row"
-            DockPanel.Dock="Top">
-        <Label Target="WorkingDir"
-               Content="Sandbox:" />
-        <SelectableTextBlock Name="WorkingDir"
-                             TextWrapping="Wrap"
-                             Grid.Column="1"
-                             Text="{Binding SandboxPath.Value}" />
-      </Grid>
 
       <Grid
         RowDefinitions="Auto *"
@@ -153,52 +132,126 @@
         </ListBox>
       </Grid>
 
-      <Button Content="Fetch latest commits"
-              HorizontalAlignment="Stretch"
-              Command="{Binding ProjectUpdateCommand}" />
-      <TextBlock Text="Sandbox actions are cheap and safe." />
-      <Button Content="Sandbox: Create"
-              HorizontalAlignment="Stretch"
-              Command="{Binding SandboxCreateCommand}" />
-      <Button Content="Sandbox: Run App"
-              HorizontalAlignment="Stretch"
-              Command="{Binding SandboxRunAppCommand}" />
-      <Button Content="Sandbox: Destroy"
-              HorizontalAlignment="Stretch"
-              Command="{Binding SandboxDestroyCommand}" />
-      <TextBlock Text="Use with caution." />
-      <Button Content="Import project"
-              HorizontalAlignment="Stretch"
-              Command="{Binding ProjectImportCommand}" />
-      <Button Content="Remove all sandboxes"
-              HorizontalAlignment="Stretch"
-              Command="{Binding SandboxDestroyAllCommand}" />
-      <Button Content="Remove git repo"
-              HorizontalAlignment="Stretch"
-              Command="{Binding DeleteRepo}" />
-      <Button Content="Init git repo"
-              HorizontalAlignment="Stretch"
-              Command="{Binding InitRepo}" />
     </StackPanel>
+
+    <TabControl Margin="12 6" DockPanel.Dock="Top">
+      <TabItem Header="Basic">
+
+        <DockPanel>
+
+
+          <HeaderedContentControl DockPanel.Dock="Right"
+                                  Margin="6 0 0 0"
+                                  MinWidth="150"
+                                  Header="Actions">
+            <StackPanel Spacing="3" Margin="3 3">
+              <Button Content="Run" Command="{Binding BasicRunCommand}" />
+              <Button Content="Fetch latest commits"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding ProjectUpdateCommand}" />
+            </StackPanel>
+          </HeaderedContentControl>
+
+          <HeaderedContentControl DockPanel.Dock="Top"
+                                  Header="Sandbox">
+            <StackPanel>
+              <SelectableTextBlock
+                TextWrapping="Wrap"
+                Text="{Binding SandboxPath.Value}" />
+            </StackPanel>
+          </HeaderedContentControl>
+
+        </DockPanel>
+
+      </TabItem>
+
+      <TabItem Header="Manual">
+        <DockPanel>
+
+          <HeaderedContentControl DockPanel.Dock="Right"
+                                  Margin="6 0 0 0"
+                                  MinWidth="150"
+                                  Header="Actions">
+            <StackPanel Spacing="3" Margin="3 3">
+              <Button Content="Sandbox: Create"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding SandboxCreateCommand}" />
+              <Button Content="Sandbox: Run App"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding SandboxRunAppCommand}" />
+              <Button Content="Sandbox: Destroy"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding SandboxDestroyCommand}" />
+            </StackPanel>
+          </HeaderedContentControl>
+
+          <HeaderedContentControl DockPanel.Dock="Top"
+                                  Header="Sandbox">
+            <StackPanel>
+              <SelectableTextBlock
+                TextWrapping="Wrap"
+                Text="{Binding SandboxPath.Value}" />
+            </StackPanel>
+          </HeaderedContentControl>
+
+
+          <TextBlock TextWrapping="Wrap"
+                     DockPanel.Dock="Bottom"
+                     Margin="3 6 3 3"
+                     Text="The basic run creates a sandbox, runs the app, then destroys the sandbox when the command completes. Here, you execute each action at will." />
+
+          <TextBlock /> <!-- occupy undocked space -->
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="Advanced">
+        <DockPanel>
+          <HeaderedContentControl DockPanel.Dock="Right"
+                                  Margin="6 0 0 0"
+                                  MinWidth="150"
+                                  Header="Actions">
+            <StackPanel Spacing="3" Margin="3 3">
+              <Button Content="Import project"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding ProjectImportCommand}" />
+              <Button Content="Remove all sandboxes"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding SandboxDestroyAllCommand}" />
+              <Button Content="Remove git repo"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding DeleteRepo}" />
+              <Button Content="Init git repo"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding InitRepo}" />
+            </StackPanel>
+          </HeaderedContentControl>
+          <TextBlock
+            TextWrapping="Wrap"
+            Text="These actions may be destructive." />
+        </DockPanel>
+      </TabItem>
+    </TabControl>
 
     <!-- <StackPanel DockPanel.Dock="Top" DataContext="{Binding Project.Value}"> -->
     <!--   <Label Content="asdf" /> -->
     <!--   <TextBlock Text="{Binding Name}" /> -->
     <!-- </StackPanel> -->
 
-    <Label Target="WorkingDir"
-           Content="Output from running app:"
-           DockPanel.Dock="Top" />
-    <TextBox IsReadOnly="True" Text="{Binding ProcessOutput.Value}">
-      <TextBox.Styles>
-        <Style
-          Selector="TextBox[AcceptsReturn=False] /template/ TextPresenter#PART_TextPresenter">
-          <Setter Property="VerticalAlignment" Value="Top" />
-        </Style>
-      </TextBox.Styles>
-      <ScrollViewer.AllowAutoHide>False</ScrollViewer.AllowAutoHide>
-      <ScrollViewer.VerticalScrollBarVisibility>Visible</ScrollViewer.VerticalScrollBarVisibility>
-    </TextBox>
+    <HeaderedContentControl Header="Command output" Margin="6 3 6 6">
+      <!-- <Label Target="WorkingDir" -->
+      <!--        Content="Output from running app:" -->
+      <!--        DockPanel.Dock="Top" /> -->
+      <TextBox IsReadOnly="True" Text="{Binding ProcessOutput.Value}">
+        <TextBox.Styles>
+          <Style
+            Selector="TextBox[AcceptsReturn=False] /template/ TextPresenter#PART_TextPresenter">
+            <Setter Property="VerticalAlignment" Value="Top" />
+          </Style>
+        </TextBox.Styles>
+        <ScrollViewer.AllowAutoHide>False</ScrollViewer.AllowAutoHide>
+        <ScrollViewer.VerticalScrollBarVisibility>Visible</ScrollViewer.VerticalScrollBarVisibility>
+      </TextBox>
+    </HeaderedContentControl>
 
   </DockPanel>
 

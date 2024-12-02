@@ -274,6 +274,12 @@ public class MainViewModel : IDisposable
             await proc.WaitForExitAsync(ct);
         });
 
+        BasicRunCommand = new ReactiveCommand();
+        BasicRunCommand.SubscribeExclusiveAwait(async (_, ct) =>
+        {
+            logger.Information("Command: " + nameof(BasicRunCommand));
+        });
+
         InitRepo = new ReactiveCommand();
         InitRepo.SubscribeExclusiveAwait(async (_, ct) =>
         {
@@ -497,6 +503,8 @@ public class MainViewModel : IDisposable
 
     public BindableReactiveProperty<string?> GitCommitSelected { get; }
     public INotifyCollectionChangedSynchronizedViewList<string> GitCommitOptions { get; }
+
+    public ReactiveCommand<Unit> BasicRunCommand { get; }
 
     public ReactiveCommand<Unit> ProjectUpdateCommand { get; }
     public ReactiveCommand<Unit> ProjectImportCommand { get; }
