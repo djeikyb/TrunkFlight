@@ -9,7 +9,6 @@
         Width="500" Height="800"
         Position="50 100"
 
-        TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="Default, PreferSystemChrome"
         SystemDecorations="Full"
@@ -21,15 +20,6 @@
         x:DataType="vm:MainViewModel"
         Title="TrunkFlight">
   <Panel>
-    <!-- <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Left"> -->
-    <!--   <ExperimentalAcrylicBorder.Material> -->
-    <!--     <ExperimentalAcrylicMaterial BackgroundSource="Digger" -->
-    <!--                                  TintColor="{DynamicResource SystemChromeLowColor}" -->
-    <!--                                  FallbackColor="{DynamicResource SystemChromeLowColor}" -->
-    <!--                                  TintOpacity="{Binding TintOpacity.Value}" -->
-    <!--                                  MaterialOpacity="{Binding MaterialOpacity.Value}" /> -->
-    <!--   </ExperimentalAcrylicBorder.Material> -->
-    <!-- </ExperimentalAcrylicBorder> -->
     <Panel Margin="{Binding $parent[Window].OffScreenMargin}">
       <views:MainView />
     </Panel>
