@@ -68,7 +68,9 @@ public class AppData
             string name;
             if (".git".Equals(Path.GetFileName(sourcePath)))
             {
-                name = Path.GetFileName(Path.GetDirectoryName(sourcePath));
+                var dirWithDotGit = Path.GetDirectoryName(sourcePath)
+                    ?? throw new Exception($"Unsupported git repo location, possibly at file system root? {gitUrl}");
+                name = Path.GetFileName(dirWithDotGit);
             }
             else
             {
