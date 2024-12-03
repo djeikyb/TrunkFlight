@@ -9,8 +9,6 @@
         Width="500" Height="800"
         Position="50 100"
 
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="Default, PreferSystemChrome"
         SystemDecorations="Full"
 
         FontFamily="Microsoft Sans Serif"
