@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/build/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="readme.md" />
+  </Folder>
+  <Project Path="TrunkFlight.Cli/TrunkFlight.Cli.csproj" />
+  <Project Path="TrunkFlight.Core/TrunkFlight.Core.csproj" />
+  <Project Path="TrunkFlight/TrunkFlight.csproj" />
+</Solution>
