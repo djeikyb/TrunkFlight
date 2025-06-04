@@ -225,8 +225,22 @@
                       Command="{Binding InitRepo}" />
             </StackPanel>
           </HeaderedContentControl>
+          <HeaderedContentControl DockPanel.Dock="Right"
+                                  Margin="6 0 0 0"
+                                  Width="150"
+                                  Header="Danger">
+            <StackPanel Spacing="3" Margin="3 3">
+              <TextBlock DockPanel.Dock="Right"
+                         TextWrapping="Wrap"
+                         Text="Delete app config, app db, all sandboxes, everything. And quit. Lose all data, start fresh." />
+              <Button Content="Start over? 🧨🧨🧨"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding NukeItCommand}" />
+            </StackPanel>
+          </HeaderedContentControl>
           <TextBlock
             TextWrapping="Wrap"
+            Margin="3 0 0 0"
             Text="These actions may be destructive." />
         </DockPanel>
       </TabItem>

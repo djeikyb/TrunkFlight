@@ -6,6 +6,8 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
@@ -381,6 +383,24 @@ public class MainViewModel : IDisposable
             TearDown(TeardownOptions.BareGitRepo | TeardownOptions.SandboxDirs);
         });
 
+        NukeItCommand = new ReactiveCommand(_ =>
+        {
+            try
+            {
+                Directory.Delete(AppData.Default.UserAppDataDir.FullName, recursive: true);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, "NukeIt command failed.");
+            }
+            finally
+            {
+                logger.Information("Closing because NukeIt command.");
+                var lifetime = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime);
+                lifetime?.Shutdown(0);
+            }
+        });
+
         View = App.LogsSink.Logs.ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher.Current);
 
         TintOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
@@ -585,6 +605,7 @@ public class MainViewModel : IDisposable
     public ReactiveCommand<Unit> InitRepo { get; }
     public ReactiveCommand<Unit> DeleteRepo { get; }
 
+    public ReactiveCommand<Unit> NukeItCommand { get; }
 
     public BindableReactiveProperty<decimal> TintOpacity { get; }
     public BindableReactiveProperty<decimal> MaterialOpacity { get; }
