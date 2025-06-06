@@ -2,14 +2,14 @@ using System;
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
+using Microsoft.Extensions.Logging;
 using TrunkFlight.Vm;
-using Serilog;
-using Serilog.Events;
 
 namespace TrunkFlight.Views;
 
 public partial class LogView : UserControl
 {
+    private readonly ILogger<LogView> _logger = Log.GetLogger<LogView>();
     public LogView()
     {
         InitializeComponent();
@@ -18,7 +18,7 @@ public partial class LogView : UserControl
         {
             if (sender is not LogView lv)
             {
-                Log.Error("🐍 ohno");
+                _logger.LogError("🐍 ohno");
                 return;
             }
 
@@ -31,7 +31,7 @@ public partial class LogView : UserControl
                 {
                     new TextColumn<LogEvent, string>("level", x => ToString(x.Level)),
                     new TextColumn<LogEvent, string>("time", x => x.Timestamp.LocalDateTime.ToString("hh:mm:ss:fff")),
-                    new TextColumn<LogEvent, string>("message template", x => x.MessageTemplate.Text),
+                    new TextColumn<LogEvent, string>("message", x => x.Message),
                 },
             };
             ((ITreeDataGridSource)source).SortBy(source.Columns[1],
@@ -41,16 +41,16 @@ public partial class LogView : UserControl
         };
     }
 
-    private static string ToString(LogEventLevel level)
+    private static string ToString(LogLevel level)
     {
         return level switch
         {
-            LogEventLevel.Verbose => "vrb",
-            LogEventLevel.Debug => "dbg",
-            LogEventLevel.Information => "inf",
-            LogEventLevel.Warning => "wrn",
-            LogEventLevel.Error => "err",
-            LogEventLevel.Fatal => "ftl",
+            LogLevel.Trace => "trc",
+            LogLevel.Debug => "dbg",
+            LogLevel.Information => "inf",
+            LogLevel.Warning => "wrn",
+            LogLevel.Error => "err",
+            LogLevel.Critical => "crt",
             _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
         };
     }

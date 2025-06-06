@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia;
-using Merviche.Logging.Serilog;
-using Serilog;
+using Merviche.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace TrunkFlight;
 
@@ -20,16 +20,24 @@ class Program
             .UsePlatformDetect()
             .WithInterFont()
             .UseR3()
-            .UseSerilog(App.LogsSink)
+            .UseZLogger(App.LogsProvider)
             .AfterSetup(_ =>
             {
-                var logger = Log.ForContext<Program>();
-                var scope = logger.ForContext("foo", "bar");
-                scope.Information("App setup complete!");
-                scope.Verbose("App setup complete!");
-                scope.Debug("App setup complete!");
-                scope.Information("App setup complete!");
-                scope.Warning("App setup complete!");
-                scope.Error("App setup complete!");
+                var logger = Log.Logger;
+                var scope = logger.With("foo", "bar");
+                scope.LogTrace("App setup complete!");
+                scope.LogDebug("App setup complete!");
+                scope.LogInformation("App setup complete!");
+                scope.LogWarning("App setup complete!");
+                scope.LogError("App setup complete!");
+
+                try
+                {
+                    throw new Exception("oh noes");
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "caught!");
+                }
             });
 }

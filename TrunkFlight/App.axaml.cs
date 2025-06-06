@@ -11,10 +11,10 @@ public class App : Application
 {
     static App()
     {
-        LogsSink = new ObservableLogEventSink(14);
+        LogsProvider = new ObservableLogProvider(14);
     }
 
-    public static ObservableLogEventSink LogsSink { get; }
+    public static ObservableLogProvider LogsProvider { get; }
 
     public override void Initialize()
     {

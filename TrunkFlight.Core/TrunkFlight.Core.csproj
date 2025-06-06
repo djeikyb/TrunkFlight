@@ -18,10 +18,8 @@
   </ItemGroup>
 
   <ItemGroup Label="logging">
-    <PackageReference Include="Merviche.Logging.Serilog" Version="0.0.1-alpha"/>
-    <PackageReference Include="Serilog" Version="4.1.0"/>
-    <PackageReference Include="Serilog.Expressions" Version="5.0.0"/>
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+    <PackageReference Include="Merviche.Logging" Version="1.0.3"/>
+    <PackageReference Include="ZLogger" Version="2.5.10"/>
   </ItemGroup>
 
   <ItemGroup Label="sql">

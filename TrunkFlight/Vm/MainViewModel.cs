@@ -11,10 +11,9 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ObservableCollections;
 using R3;
-using Serilog;
-using Serilog.Events;
 using TrunkFlight.Core;
 
 namespace TrunkFlight.Vm;
@@ -38,6 +37,7 @@ public class MainViewModel : IDisposable
 
     public MainViewModel(IClipboard clipboard)
     {
+
         var config = new ConfigurationBuilder().AddDefaultConfig().AddEnvironmentVariables().Build();
 
         var conn = new SqliteConnection(config.GetConnectionString("db"))
@@ -46,9 +46,9 @@ public class MainViewModel : IDisposable
         var db = new Db(conn);
         db.EnsureCreated();
 
-        var logger = Log.ForContext<MainViewModel>();
+        var logger = Log.GetLogger<MainViewModel>();
 
-        logger.Information(AppData.Default.UserAppDataDir.FullName);
+        logger.LogInformation(AppData.Default.UserAppDataDir.FullName);
 
         var repos = new ObservableList<GitRepo>(db
             .RepoCommands()
@@ -107,7 +107,7 @@ public class MainViewModel : IDisposable
         ProjectImportCommand = new ReactiveCommand();
         ProjectImportCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
-            logger.Information("Command: " + nameof(ProjectImportCommand));
+            logger.LogInformation("Command: " + nameof(ProjectImportCommand));
 
             // clipboard.GetFormatsAsync()
             //     .ContinueWith(formats => { });
@@ -115,7 +115,7 @@ public class MainViewModel : IDisposable
             await Task.Run(async () =>
             {
                 // var formats = await clipboard.GetFormatsAsync();
-                // logger.Information(string.Join(Environment.NewLine, formats));
+                // logger.LogInformation(string.Join(Environment.NewLine, formats));
                 var data = await clipboard.GetTextAsync();
                 if (data is not null)
                 {
@@ -155,7 +155,7 @@ public class MainViewModel : IDisposable
         ProjectUpdateCommand = new ReactiveCommand();
         ProjectUpdateCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
-            logger.Information("Command: " + nameof(ProjectUpdateCommand));
+            logger.LogInformation("Command: " + nameof(ProjectUpdateCommand));
 
             var gr = RepoSelected.Value;
             if (gr is null) return;
@@ -186,7 +186,7 @@ public class MainViewModel : IDisposable
 
                 if (!connected)
                 {
-                    logger.Information("Basic connection failed, aborting git fetch.");
+                    logger.LogInformation("Basic connection failed, aborting git fetch.");
                     return;
                 }
 
@@ -213,7 +213,7 @@ public class MainViewModel : IDisposable
 
         SandboxCreateCommand = new ReactiveCommand(_ =>
         {
-            logger.Information("Command: " + nameof(SandboxCreateCommand));
+            logger.LogInformation("Command: " + nameof(SandboxCreateCommand));
 
             var p = CommandSelected.Value;
             if (p is null) return;
@@ -235,7 +235,7 @@ public class MainViewModel : IDisposable
 
         SandboxDestroyCommand = new ReactiveCommand(_ =>
         {
-            logger.Information("Command: " + nameof(SandboxDestroyCommand));
+            logger.LogInformation("Command: " + nameof(SandboxDestroyCommand));
             if (SandboxPath.Value is not { } path) return;
 
             var p = CommandSelected.Value;
@@ -256,7 +256,7 @@ public class MainViewModel : IDisposable
         SandboxRunAppCommand = new ReactiveCommand();
         SandboxRunAppCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
-            logger.Information("Command: " + nameof(SandboxRunAppCommand));
+            logger.LogInformation("Command: " + nameof(SandboxRunAppCommand));
 
             if (CommandSelected.Value is not { } proj) return;
             if (SandboxPath.Value is not { } path) return;
@@ -292,7 +292,7 @@ public class MainViewModel : IDisposable
         BasicRunCommand = new ReactiveCommand();
         BasicRunCommand.SubscribeExclusiveAwait(async (_, ct) =>
         {
-            logger.Information("Command: " + nameof(BasicRunCommand));
+            logger.LogInformation("Command: " + nameof(BasicRunCommand));
 
             try
             {
@@ -300,7 +300,7 @@ public class MainViewModel : IDisposable
             }
             catch(Exception e)
             {
-                logger.Information(e, "Failed to remove previous sandbox tmp dir.");
+                logger.LogInformation(e, "Failed to remove previous sandbox tmp dir.");
             }
 
             SandboxCreateCommand.Execute(Unit.Default);
@@ -347,14 +347,14 @@ public class MainViewModel : IDisposable
             }
             catch (Exception e)
             {
-                logger.Error(e, "💣 Command caused exception!");
+                logger.LogError(e, "💣 Command caused exception!");
             }
         });
 
         InitRepo = new ReactiveCommand();
         InitRepo.SubscribeExclusiveAwait(async (_, ct) =>
         {
-            logger.Information("Command: " + nameof(InitRepo));
+            logger.LogInformation("Command: " + nameof(InitRepo));
 
             var repo = RepoSelected.Value;
             if (repo is null) return;
@@ -372,14 +372,14 @@ public class MainViewModel : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    logger.Information(ex, "Clone failed.");
+                    logger.LogInformation(ex, "Clone failed.");
                 }
             });
         }).AddTo(ref _disposable);
 
         DeleteRepo = new ReactiveCommand(_ =>
         {
-            logger.Information("Command: " + nameof(DeleteRepo));
+            logger.LogInformation("Command: " + nameof(DeleteRepo));
             TearDown(TeardownOptions.BareGitRepo | TeardownOptions.SandboxDirs);
         });
 
@@ -391,17 +391,17 @@ public class MainViewModel : IDisposable
             }
             catch (Exception e)
             {
-                logger.Error(e, "NukeIt command failed.");
+                logger.LogError(e, "NukeIt command failed.");
             }
             finally
             {
-                logger.Information("Closing because NukeIt command.");
+                logger.LogInformation("Closing because NukeIt command.");
                 var lifetime = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime);
                 lifetime?.Shutdown(0);
             }
         });
 
-        View = App.LogsSink.Logs.ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher.Current);
+        View = App.LogsProvider.Logs.ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher.Current);
 
         TintOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
         MaterialOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
@@ -479,7 +479,7 @@ public class MainViewModel : IDisposable
         //                 project.command=dotnet run --project Prototype.Reels
         //                 """;
 
-        var logger = Log.ForContext<MainViewModel>();
+        var logger = Log.GetLogger<MainViewModel>();
         Dictionary<string, string> d = new();
         try
         {
@@ -503,7 +503,7 @@ public class MainViewModel : IDisposable
         }
         catch (Exception e)
         {
-            logger.Error(e, "Failed to parse config.");
+            logger.LogError(e, "Failed to parse config.");
             return;
         }
 
