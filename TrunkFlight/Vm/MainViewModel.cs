@@ -331,7 +331,14 @@ public class MainViewModel : IDisposable
                 proc.Start();
                 proc.BeginErrorReadLine();
                 proc.BeginOutputReadLine();
-                await proc.WaitForExitAsync(ct);
+                try
+                {
+                    await proc.WaitForExitAsync(ct);
+                }
+                finally
+                {
+                    if (!proc.HasExited) proc.Kill(entireProcessTree: true);
+                }
             }
             catch (Exception e)
             {
