@@ -320,11 +320,11 @@ public class MainViewModel : IDisposable
 
             // get ready to capture stdout
             proc.StartInfo.RedirectStandardOutput = true;
-            proc.OutputDataReceived += (_, e) => ProcessOutput.Value += e.Data + Environment.NewLine;
+            proc.OutputDataReceived += (_, e) => ProcessOutput.Value += "O: " + e.Data + Environment.NewLine;
 
             // get ready to capture stderr
             proc.StartInfo.RedirectStandardError = true;
-            proc.ErrorDataReceived += (_, e) => ProcessOutput.Value += e.Data + Environment.NewLine;
+            proc.ErrorDataReceived += (_, e) => ProcessOutput.Value += "E: " + e.Data + Environment.NewLine;
 
             proc.Start();
             proc.BeginErrorReadLine();
