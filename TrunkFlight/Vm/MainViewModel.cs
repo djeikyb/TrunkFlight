@@ -308,28 +308,35 @@ public class MainViewModel : IDisposable
 
             var firstSpace = proj.Command.IndexOf(' ');
 
-            Process proc = new Process();
-            proc.AddTo(ref _disposable);
+            try
+            {
+                Process proc = new Process();
+                proc.AddTo(ref _disposable);
 
-            // set up the command
-            proc.StartInfo.WorkingDirectory = path;
-            proc.StartInfo.FileName = firstSpace > 0
-                ? proj.Command[..firstSpace]
-                : proj.Command;
-            if (firstSpace > 0) proc.StartInfo.Arguments = proj.Command[firstSpace..];
+                // set up the command
+                proc.StartInfo.WorkingDirectory = path;
+                proc.StartInfo.FileName = firstSpace > 0
+                    ? proj.Command[..firstSpace]
+                    : proj.Command;
+                if (firstSpace > 0) proc.StartInfo.Arguments = proj.Command[firstSpace..];
 
-            // get ready to capture stdout
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.OutputDataReceived += (_, e) => ProcessOutput.Value += "O: " + e.Data + Environment.NewLine;
+                // get ready to capture stdout
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.OutputDataReceived += (_, e) => ProcessOutput.Value += "O: " + e.Data + Environment.NewLine;
 
-            // get ready to capture stderr
-            proc.StartInfo.RedirectStandardError = true;
-            proc.ErrorDataReceived += (_, e) => ProcessOutput.Value += "E: " + e.Data + Environment.NewLine;
+                // get ready to capture stderr
+                proc.StartInfo.RedirectStandardError = true;
+                proc.ErrorDataReceived += (_, e) => ProcessOutput.Value += "E: " + e.Data + Environment.NewLine;
 
-            proc.Start();
-            proc.BeginErrorReadLine();
-            proc.BeginOutputReadLine();
-            await proc.WaitForExitAsync(ct);
+                proc.Start();
+                proc.BeginErrorReadLine();
+                proc.BeginOutputReadLine();
+                await proc.WaitForExitAsync(ct);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, "💣 Command caused exception!");
+            }
         });
 
         InitRepo = new ReactiveCommand();
