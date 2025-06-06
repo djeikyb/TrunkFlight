@@ -310,8 +310,7 @@ public class MainViewModel : IDisposable
 
             try
             {
-                Process proc = new Process();
-                proc.AddTo(ref _disposable);
+                using Process proc = new Process();
 
                 // set up the command
                 proc.StartInfo.WorkingDirectory = path;
