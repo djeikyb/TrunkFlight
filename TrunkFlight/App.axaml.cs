@@ -18,7 +18,6 @@ public class App : Application
 
     public override void Initialize()
     {
-        this.EnableHotReload(); // Ensure this line **precedes** `AvaloniaXamlLoader.Load(this);`
         AvaloniaXamlLoader.Load(this);
     }
 
