@@ -338,6 +338,10 @@ public class MainViewModel : IDisposable
                 finally
                 {
                     if (!proc.HasExited) proc.Kill(entireProcessTree: true);
+                    ProcessOutput.Value +=
+                        $"exit: {proc.ExitCode}{Environment.NewLine}"
+                        + $"pid: {proc.Id}{Environment.NewLine}"
+                        + $"exited: {proc.ExitTime.ToString("s").Replace('T', ' ')}{Environment.NewLine}";
                 }
             }
             catch (Exception e)
