@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Logging;
 using Microsoft.Extensions.Logging;
@@ -58,6 +60,17 @@ public static class LogStartupExtensions
         // Initialize global logger and logger factory
         Log.SetLoggerFactory(factory, "App");
 
+        if (OperatingSystem.IsWindows())
+        {
+            AttachConsole(ATTACH_PARENT_PROCESS);
+            Console.WriteLine("🥑 did it work");
+        }
+
         return builder;
     }
+
+    [DllImport("kernel32.dll")]
+    static extern bool AttachConsole(uint dwProcessId);
+
+    const uint ATTACH_PARENT_PROCESS = 0x0ffffffff;
 }
