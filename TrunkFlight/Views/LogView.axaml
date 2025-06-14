@@ -6,7 +6,5 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:MainViewModel"
              x:Class="TrunkFlight.Views.LogView">
-  <TreeDataGrid Margin="9 0 9 0"
-                HorizontalAlignment="Stretch"
-                Name="LogTable" />
+  <ListBox ItemsSource="{Binding LogLines}" FontFamily="Courier" />
 </UserControl>

@@ -251,23 +251,30 @@
     <!--   <TextBlock Text="{Binding Name}" /> -->
     <!-- </StackPanel> -->
 
-    <HeaderedContentControl Header="Command output" Margin="6 3 6 6">
-      <!-- <Label Target="WorkingDir" -->
-      <!--        Content="Output from running app:" -->
-      <!--        DockPanel.Dock="Top" /> -->
-      <TextBox IsReadOnly="True"
-               TextWrapping="Wrap"
-               Text="{Binding ProcessOutput.Value}">
-        <TextBox.Styles>
-          <Style
-            Selector="TextBox[AcceptsReturn=False] /template/ TextPresenter#PART_TextPresenter">
-            <Setter Property="VerticalAlignment" Value="Top" />
-          </Style>
-        </TextBox.Styles>
-        <ScrollViewer.AllowAutoHide>False</ScrollViewer.AllowAutoHide>
-        <ScrollViewer.VerticalScrollBarVisibility>Visible</ScrollViewer.VerticalScrollBarVisibility>
-      </TextBox>
-    </HeaderedContentControl>
+    <TabControl Margin="12 3 12 6" DockPanel.Dock="Top">
+      <TabItem Header="Command">
+        <!-- <HeaderedContentControl Header="Command output" Margin="6 3 6 6"> -->
+          <!-- <Label Target="WorkingDir" -->
+          <!--        Content="Output from running app:" -->
+          <!--        DockPanel.Dock="Top" /> -->
+          <TextBox IsReadOnly="True"
+                   TextWrapping="Wrap"
+                   Text="{Binding ProcessOutput.Value}">
+            <TextBox.Styles>
+              <Style
+                Selector="TextBox[AcceptsReturn=False] /template/ TextPresenter#PART_TextPresenter">
+                <Setter Property="VerticalAlignment" Value="Top" />
+              </Style>
+            </TextBox.Styles>
+            <ScrollViewer.AllowAutoHide>False</ScrollViewer.AllowAutoHide>
+            <ScrollViewer.VerticalScrollBarVisibility>Visible</ScrollViewer.VerticalScrollBarVisibility>
+          </TextBox>
+        <!-- </HeaderedContentControl> -->
+      </TabItem>
+      <TabItem Header="Self">
+        <v:LogView />
+      </TabItem>
+    </TabControl>
 
   </DockPanel>
 

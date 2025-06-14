@@ -402,6 +402,23 @@ public class MainViewModel : IDisposable
         });
 
         View = App.LogsProvider.Logs.ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher.Current);
+        LogLines = App.LogsProvider.Logs
+            .CreateView(x =>
+            {
+                var level = x.Level switch {
+                            LogLevel.Trace => "TRC",
+                            LogLevel.Debug => "DBG",
+                            LogLevel.Information => "INF",
+                            LogLevel.Warning => "WRN",
+                            LogLevel.Error => "ERR",
+                            LogLevel.Critical => "CRI",
+                            LogLevel.None => "NON",
+                            _ => "🥑"
+                };
+                return $"{x.Timestamp.ToString("HH:mm:ss")} {level}] {x.Message}";
+            })
+            .ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher
+            .Current);
 
         TintOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
         MaterialOpacity = new BindableReactiveProperty<decimal>(1m).AddTo(ref _disposable);
@@ -612,4 +629,5 @@ public class MainViewModel : IDisposable
 
 
     public INotifyCollectionChangedSynchronizedViewList<LogEvent> View { get; }
+    public INotifyCollectionChangedSynchronizedViewList<string> LogLines { get; }
 }

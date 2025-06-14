@@ -34,11 +34,12 @@ public class ObservableLogProvider(int capacity) : IAsyncLogProcessor
 
     public void Post(IZLoggerEntry entry)
     {
+        var ex = entry.LogInfo.Exception;
         Logs.AddLast(new LogEvent
         {
             Level = entry.LogInfo.LogLevel,
             Timestamp = entry.LogInfo.Timestamp.Utc,
-            Message = entry.ToString(),
+            Message = entry.ToString() + (ex is null ? string.Empty : $" {ex}"),
         });
         entry.Return();
     }
